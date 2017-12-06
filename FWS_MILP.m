@@ -47,7 +47,7 @@ for ii=1:S
     end
 end
 
-% desicion variable
+% decision variable
 x=optimvar('x',P,F,W,'LowerBound',0);
 y=optimvar('y',S,W,'Type','integer','LowerBound',0,'UpperBound',1);
 
