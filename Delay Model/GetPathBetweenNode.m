@@ -1,8 +1,8 @@
-function pth = GetPathBetweenNode(adj, src, snk, verbose)
+function pth = GetPathBetweenNode(graph, direction, src, snk, verbose)
 %PATHBETWEENNODES Return all paths between two nodes of a graph
 %
-% pth = pathbetweennodes(adj, src, snk)
-% pth = pathbetweennodes(adj, src, snk, vflag)
+% pth = GetPathBetweenNode(graph, direction, src, snk, verbose)
+% pth = GetPathBetweenNode(graph, direction, src, snk)
 %
 %
 % This function returns all simple paths (i.e. no cycles) between two nodes
@@ -12,7 +12,9 @@ function pth = GetPathBetweenNode(adj, src, snk, verbose)
 %
 % Input variables:
 %
-%   adj:    adjacency matrix
+%   graph:  the graph
+%
+%   direction: indicate graph is 'directed' (in default) or 'undirected'
 %
 %   src:    index of starting node
 %
@@ -28,31 +30,42 @@ function pth = GetPathBetweenNode(adj, src, snk, verbose)
 %           of nodes from src to snk.
 
 % Copyright 2014 Kelly Kearney
+% Modified by Wang Yantong 11/12/2017
 
-if nargin < 4
+if nargin < 5
     verbose = false;
 end
 
+pth = cell(0); % possible path
+
+if src == snk % parameter checking
+    return
+end
+
+% get adjency matrix
+nn = numnodes(graph);
+[s,t] = findedge(graph);
+adj = sparse(s,t,graph.Edges.Weight,nn,nn);
+if direction == "undirected"
+    adj = adj + adj.' - diag(diag(adj));
+end
+
 n = size(adj,1);
-
-stack = src;
-
+stack = src; % current path
 stop = false;
-
-pth = cell(0);
-cycles = cell(0);
+cycles = cell(0); % cycles in the path
 
 next = cell(n,1);
 for in = 1:n
-    next{in} = find(adj(in,:));
+    next{in} = find(adj(in,:)); % possible node in one step
 end
 
-visited = cell(0);
+visited = cell(0); % path in history
 
 pred = src;
 while 1
     
-    visited = [visited; sprintf('%d,', stack)];
+    visited = AddHistoryPath(visited, stack);
     
     [stack, pred] = addnode(stack, next, visited, pred);
     if verbose
@@ -64,13 +77,13 @@ while 1
         break;
     end
     
-    if stack(end) == snk
+    if stack(end) == snk % reach the destination
         pth = [pth; {stack}];
-        visited = [visited; sprintf('%d,', stack)];
+        visited = AddHistoryPath(visited, stack);
         stack = popnode(stack);
-    elseif length(unique(stack)) < length(stack)
+    elseif length(unique(stack)) < length(stack) % cycle in the path
         cycles = [cycles; {stack}];
-        visited = [visited; sprintf('%d,', stack)];
+        visited = AddHistoryPath(visited, stack);
         stack = popnode(stack);  
     end
 
@@ -100,4 +113,14 @@ if length(stack) > 1
     pred = stack(end-1);
 else
     pred = [];
+end
+
+function visited = AddHistoryPath(VisitedLog, stack)
+
+possible = sprintf('%d,', stack);
+isnew = ~ismember(VisitedLog, possible);
+if (all(isnew) || isempty(VisitedLog))
+    visited = [VisitedLog; sprintf('%d,', stack)];
+else
+    visited = VisitedLog;
 end
