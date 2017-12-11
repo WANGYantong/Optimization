@@ -12,6 +12,8 @@ N=length(names);
 for v=1:N
     eval([names{v},'=',num2str(v),';']);
 end
+node=[n1,n2];
+edgecloud=[ec1,ec2,ec3,ec4];
 
 hold on;
 G=graph(s,t,weights,names);
@@ -19,13 +21,13 @@ LWidths=3*G.Edges.Weight/max(G.Edges.Weight);
 p=plot(G,'EdgeLabel',G.Edges.Weight,'NodeLabel',...
     G.Nodes.Name,'LineWidth',LWidths);
 p.Marker='o';
-p.NodeColor='r';
 p.MarkerSize=8;
 p.EdgeColor='b'; 
 p.LineStyle='--';
+highlight(p,edgecloud,'nodecolor','r');
+highlight(p,ec4,'nodecolor','g'); %the original edge cloud
 p.XData=[3,2,4,1,3,5];
 p.YData=[3,2,2,1,1,1];
-plot(3,1,'black*');
 hold off;
 title('Network Topology');
 %%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%
