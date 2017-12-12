@@ -76,7 +76,7 @@ for ii=1:length(flow)
    w{ii}=GetRoutingCost(G{ii}, 'undirected', path);
 end
 
-% matrix for path reach edge cloud
+% matrix for recording path reached edge cloud
 Gpe=zeros(numel(path), numel(edgecloud));
 for ii=1:size(Gpe,1)
     if isempty(path{ii})
