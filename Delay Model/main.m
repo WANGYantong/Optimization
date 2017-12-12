@@ -76,8 +76,23 @@ for ii=1:length(flow)
    w{ii}=GetRoutingCost(G{ii}, 'undirected', path);
 end
 
-% matrix for path cross edge cloud
-
+% matrix for path reach edge cloud
+Gpe=zeros(numel(path), numel(edgecloud));
+for ii=1:size(Gpe,1)
+    if isempty(path{ii})
+        continue;
+    end
+    % considering path{ii} may has more than one posiible route, but their 
+    % source and destination are same. So here use path{ii}{1} to replace
+    % the others.
+    src=find(edgecloud==path{ii}{1}(1));
+    snk=find(edgecloud==path{ii}{1}(end));
+    if ~isempty(src) && ~isempty(snk)
+        Gpe(ii,src)=1;
+        Gpe(ii,snk)=1;
+    end
+end
+Gpe=sparse(Gpe);
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 
