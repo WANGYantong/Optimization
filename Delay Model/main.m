@@ -94,6 +94,35 @@ for ii=1:size(Gpe,1)
 end
 Gpe=sparse(Gpe);
 
+% caching cost impact factor
+
+% utilization for each edge cloud
+
+% mobile moving probability
+
+% the maximum number of edge cloud used to cache
+
+% size of cache items
+
+% remaining cache space for each edge cloud
+
+% remaining cache space in total
+
+% the rate of each flow
+
+% link capacity
+
+% arriving rate
+
+% number of servers
+
+% each server service rate
+
+% delay tolerance
+
+% propagation delay
+
+
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % constraints
