@@ -51,11 +51,15 @@ suptitle('Network Topology');
 
 %%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of links
-link1=G{flow1}.Edges;
-link2=G{flow2}.Edges;
+% link{1}{1,'EndNodes'}{1}
+for v=1:length(flow)
+    link{v}=G{v}.Edges;
+end
+
 
 % the set of paths
 % the paths for flow1 and flow2 are same 
+% path{1,1}{1}(1)
 sources=[ec1,ec2,ec3,ec4];
 targets=[ec3,ec4,n2];
 path=cell(length(sources),length(targets));
@@ -67,7 +71,10 @@ for ii=1:length(sources)
 end
 
 % path cost OR routing cost
-
+w=cell(1,length(flow));
+for ii=1:length(flow)
+   w{ii}=GetRoutingCost(G{ii}, 'undirected', path);
+end
 
 % matrix for path cross edge cloud
 
