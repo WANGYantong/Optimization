@@ -1,8 +1,7 @@
 clear
 clc
 
-rng(2);
-
+rng(1);
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the netwrok
 flow={'flow1','flow2'}; %$$%
@@ -95,33 +94,65 @@ end
 Gpe=sparse(Gpe);
 
 % caching cost impact factor
+alpha=randi(100);
 
 % utilization for each edge cloud
+% we also generate utilizations for nodes here to index easier.
+% utilization(ec1)
+utilization=rand(size(names));
+utilization=utilization*0.8;  % CHEAT!!!!!
 
 % mobile moving probability
+probability=zeros(size(names));
+probability(targets(end))=1;
+for ii=1:length(targets)-1
+    probability(targets(ii))=rand()/(length(targets)-1);
+    probability(targets(end))=probability(targets(end))-probability(targets(ii));
+end
 
 % the maximum number of edge cloud used to cache
+Nk=1;
 
 % size of cache items
+% 0~5000 Mbit
+Wsize=1000*randi(5,size(flow));
 
 % remaining cache space for each edge cloud
+Rspace=ones(size(names))*10000;
+Rspace=Rspace.*(1-utilization);
 
 % remaining cache space in total
+Rtotal=50000;
 
 % the rate of each flow
+% THINK OUT THE RELATIONSHIP WITH LAMBDA!
+Rk=randi([2,8],size(flow))*100;
 
 % link capacity
+Cl=1000;
 
 % arriving rate
+% check the unit of lambda and mu, is it Mbps? and the delay time? ms or us
+lambda=poissrnd(200,length(flow),length(names));
 
 % number of servers
+ce=zeros(size(names));
+for ii=1:length(ce)
+    if rand()>0.5
+        ce(ii)=2;
+    else
+        ce(ii)=3;
+    end
+end
 
 % each server service rate
+mu=poissrnd(120,length(flow),length(names));
 
 % delay tolerance
+delta=200;
 
 % propagation delay
-
+Tpr=50;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 
