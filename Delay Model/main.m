@@ -128,7 +128,7 @@ Rtotal=50000;
 
 % the rate of each flow
 % THINK OUT THE RELATIONSHIP WITH LAMBDA!
-Rk=randi([2,8],size(flow))*100;
+Rk=randi([3,8],size(flow))*100;
 
 % link capacity
 Cl=1000;
