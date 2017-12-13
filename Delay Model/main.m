@@ -30,7 +30,7 @@ end
 
 % plot each flow graph
 figure;
-cxd=['r','b','g','c','y','m','k'];
+cxd=['b','g','r','c','k','m','y'];
 for ii=1:length(flow)
     subplot(2,1,ii);
     LWidths{ii}=3*G{ii}.Edges.Weight/max(G{ii}.Edges.Weight);
@@ -97,7 +97,8 @@ Gpe=sparse(Gpe);
 alpha=randi(100);
 
 % utilization for each edge cloud
-% we also generate utilizations for nodes here to index easier.
+% we also generate utilizations for 'names' here to index easier.
+% the reasons why use 'names' instead of 'edgecloud' are same for below.
 % utilization(ec1)
 utilization=rand(size(names));
 utilization=utilization*0.8;  % CHEAT!!!!!
@@ -107,7 +108,8 @@ probability=zeros(size(names));
 probability(targets(end))=1;
 for ii=1:length(targets)-1
     probability(targets(ii))=rand()/(length(targets)-1);
-    probability(targets(end))=probability(targets(end))-probability(targets(ii));
+    probability(targets(end))=probability(targets(end))...
+        -probability(targets(ii));
 end
 
 % the maximum number of edge cloud used to cache
@@ -132,7 +134,7 @@ Rk=randi([2,8],size(flow))*100;
 Cl=1000;
 
 % arriving rate
-% check the unit of lambda and mu, is it Mbps? and the delay time? ms or us
+% unit: Mbps
 lambda=poissrnd(200,length(flow),length(names));
 
 % number of servers
@@ -146,12 +148,15 @@ for ii=1:length(ce)
 end
 
 % each server service rate
+% unit: Mbps
 mu=poissrnd(120,length(flow),length(names));
 
 % delay tolerance
+% unit: Ms
 delta=200;
 
 % propagation delay
+% unit: Ms
 Tpr=50;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
