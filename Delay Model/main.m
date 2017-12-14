@@ -4,33 +4,35 @@ clc
 rng(1);
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the netwrok
-flow={'flow1','flow2'}; %$$%
-N=length(flow);
+flowname={'flow1','flow2'}; %$$%
+N=length(flowname);
 for v=1:N
-    eval([flow{v},'=',num2str(v),';']);
+    eval([flowname{v},'=',num2str(v),';']);
 end
+flow=[flow1, flow2];
 
 % the nodes and edge clouds in the network 
-names={'ec1','n1','ec2','ec3',...
-    'ec4','n2'}; %$$%
+names={'ec1','ec2','ec3','ec4','ec5',...
+    'n1','n2'}; %$$%
 N=length(names);
 for v=1:N
     eval([names{v},'=',num2str(v),';']);
 end
 node=[n1,n2]; %$$%
-edgecloud=[ec1,ec2,ec3,ec4]; %$$%
+edgecloud=[ec1,ec2,ec3,ec4,ec5]; %$$%
 
 % generate the undirected graph
-s=[1,1,2,2,3,3,5]; %$$%
-t=[2,3,4,5,5,6,6]; %$$%
+s=[ec1,ec1,n1, n1, n1, ec2,ec2,ec5]; %$$%
+t=[n1, ec2,ec3,ec4,ec5,ec5,n2, n2 ]; %$$%
 for ii=1:length(flow)
     weights{ii}=10*randi([1,10],size(s));
     G{ii}=graph(s,t,weights{ii},names);
 end
+originalEC=ec5;
 
 % plot each flow graph
 figure;
-cxd=['b','g','r','c','k','m','y'];
+cxd=['b','k','r','g','c','m','y'];
 for ii=1:length(flow)
     subplot(2,1,ii);
     LWidths{ii}=3*G{ii}.Edges.Weight/max(G{ii}.Edges.Weight);
@@ -38,12 +40,12 @@ for ii=1:length(flow)
         G{ii}.Nodes.Name,'LineWidth',LWidths{ii});
     p(ii).Marker='o';
     p(ii).MarkerSize=8;
-    p(ii).EdgeColor=cxd(randi(length(cxd))); 
+    p(ii).EdgeColor=cxd(ii); 
     p(ii).LineStyle='--';
     highlight(p(ii),edgecloud,'nodecolor','r');
-    highlight(p(ii),ec4,'nodecolor','g'); %the original edge cloud
-    p(ii).XData=[3,2,4,1,3,5]; 
-    p(ii).YData=[3,2,2,1,1,1]; 
+    highlight(p(ii),originalEC,'nodecolor','g'); %the original edge cloud
+    p(ii).XData=[3,4,1,2,3,2,5]; 
+    p(ii).YData=[3,2,1,1,1,2,1]; 
     title(['Flow',num2str(ii)]);
 end
 suptitle('Network Topology');
@@ -59,8 +61,9 @@ end
 % the set of paths
 % the paths for flow1 and flow2 are same 
 % path{1,1}{1}(1)
-sources=[ec1,ec2,ec3,ec4];
-targets=[ec3,ec4,n2];
+%sources=[ec1,ec2,ec3,ec4,ec5];
+sources=originalEC;
+targets=[ec3,ec4,ec5,n2];
 path=cell(length(sources),length(targets));
 for ii=1:length(sources)
     for jj=1:length(targets)
@@ -97,10 +100,8 @@ Gpe=sparse(Gpe);
 alpha=randi(100);
 
 % utilization for each edge cloud
-% we also generate utilizations for 'names' here to index easier.
-% the reasons why use 'names' instead of 'edgecloud' are same for below.
 % utilization(ec1)
-utilization=rand(size(names));
+utilization=rand(size(edgecloud));
 utilization=utilization*0.8;  % CHEAT!!!!!
 
 % mobile moving probability
@@ -120,7 +121,7 @@ Nk=1;
 Wsize=1000*randi(5,size(flow));
 
 % remaining cache space for each edge cloud
-Rspace=ones(size(names))*10000;
+Rspace=ones(size(edgecloud))*10000;
 Rspace=Rspace.*(1-utilization);
 
 % remaining cache space in total
@@ -135,10 +136,10 @@ Cl=1000;
 
 % arriving rate
 % unit: Mbps
-lambda=poissrnd(200,length(flow),length(names));
+lambda=poissrnd(200,length(flow),length(edgecloud));
 
 % number of servers
-ce=zeros(size(names));
+ce=zeros(size(edgecloud));
 for ii=1:length(ce)
     if rand()>0.5
         ce(ii)=2;
@@ -149,7 +150,7 @@ end
 
 % each server service rate
 % unit: Mbps
-mu=poissrnd(120,length(flow),length(names));
+mu=poissrnd(120,length(flow),length(edgecloud));
 
 % delay tolerance
 % unit: Ms
@@ -160,6 +161,8 @@ delta=200;
 Tpr=50;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
+x=optimvar('x',length(flow),length(edgecloud),'Type','integer','LowerBound',0,'UpperBound',1);
+% y=optimvar('y',length(flow)); % path, rewrite path and w, change the form into vector??
 
 % constraints
 
