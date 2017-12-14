@@ -28,7 +28,7 @@ for ii=1:length(flow)
     weights{ii}=10*randi([1,10],size(s));
     G{ii}=graph(s,t,weights{ii},names);
 end
-originalEC=ec5;
+original_ec=ec5;
 
 % plot each flow graph
 figure;
@@ -43,7 +43,7 @@ for ii=1:length(flow)
     p(ii).EdgeColor=cxd(ii); 
     p(ii).LineStyle='--';
     highlight(p(ii),edgecloud,'nodecolor','r');
-    highlight(p(ii),originalEC,'nodecolor','g'); %the original edge cloud
+    highlight(p(ii),original_ec,'nodecolor','g'); %the original edge cloud
     p(ii).XData=[3,4,1,2,3,2,5]; 
     p(ii).YData=[3,2,1,1,1,2,1]; 
     title(['Flow',num2str(ii)]);
@@ -62,7 +62,7 @@ end
 % the paths for flow1 and flow2 are same 
 % path{1,1}{1}(1)
 %sources=[ec1,ec2,ec3,ec4,ec5];
-sources=originalEC;
+sources=original_ec;
 targets=[ec3,ec4,ec5,n2];
 path=cell(length(sources),length(targets));
 for ii=1:length(sources)
@@ -162,8 +162,18 @@ Tpr=50;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 x=optimvar('x',length(flow),length(edgecloud),'Type','integer','LowerBound',0,'UpperBound',1);
-% y=optimvar('y',length(flow)); % path, rewrite path and w, change the form into vector??
 
+counter_path=0;
+for ii=1:numel(path)
+	counter_path=counter_path+numel(path{ii});
+end
+y=optimvar('y',length(flow),counter_path,'Type','integer','LowerBound',0,'UpperBound',1);
+
+Pi=optimvar('Pi',length(flow),counter_path,length(edgecloud),'Type','integer','LowerBound',0,'UpperBound',1);
+
+omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,'LowerBound',0);
+
+z=optimvar('z',size(link{flow1},1),'LowerBound',0);
 % constraints
 
 % problem and objective function
