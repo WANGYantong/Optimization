@@ -174,7 +174,15 @@ Pi=optimvar('Pi',length(flow),counter_path,length(edgecloud),'Type','integer','L
 omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,'LowerBound',0);
 
 z=optimvar('z',size(link{flow1},1),'LowerBound',0);
-% constraints
+
+%%%%%%%%%%%%%%%%%%%%%%%% constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% change the format of w
+% A=cellfun(@cell2mat, w{flow1},'UniformOutPut', false);
+% cell2mat(A(1,:));
+% OR
+% w{flow1}{find(sources==ec5),find(targets==ec4)};
+
+
 
 % problem and objective function
 
