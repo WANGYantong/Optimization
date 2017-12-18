@@ -79,22 +79,28 @@ for ii=1:length(flow)
 end
 
 % matrix for recording path reached edge cloud
-Gpe=zeros(numel(path), numel(edgecloud));
-for ii=1:size(Gpe,1)
+% get the number of path
+counter_path=0;
+for ii=1:numel(path)
+	counter_path=counter_path+numel(path{ii});
+end
+
+Gpe=zeros(counter_path, numel(edgecloud));
+index=0;
+for ii=1:numel(path)
     if isempty(path{ii})
         continue;
     end
-    % considering path{ii} may has more than one posiible route, but their 
-    % source and destination are same. So here use path{ii}{1} to replace
-    % the others.
-    src=find(edgecloud==path{ii}{1}(1));
-    snk=find(edgecloud==path{ii}{1}(end));
-    if ~isempty(src) && ~isempty(snk)
-        Gpe(ii,src)=1;
-        Gpe(ii,snk)=1;
+    for jj=1:numel(path{ii})
+        src=find(edgecloud==path{ii}{jj}(1));
+        snk=find(edgecloud==path{ii}{jj}(end));
+        if ~isempty(src) && ~isempty(snk)
+            index=index+1;
+            Gpe(index,src)=1;
+            Gpe(index,snk)=1;
+        end
     end
 end
-Gpe=sparse(Gpe);
 
 % caching cost impact factor
 alpha=randi(100);
@@ -114,7 +120,7 @@ for ii=1:length(targets)-1
 end
 
 % the maximum number of edge cloud used to cache
-Nk=1;
+Nk=ones(size(flow));
 
 % size of cache items
 % 0~5000 Mbit
@@ -163,13 +169,9 @@ Tpr=50;
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 x=optimvar('x',length(flow),length(edgecloud),'Type','integer','LowerBound',0,'UpperBound',1);
 
-counter_path=0;
-for ii=1:numel(path)
-	counter_path=counter_path+numel(path{ii});
-end
 y=optimvar('y',length(flow),counter_path,'Type','integer','LowerBound',0,'UpperBound',1);
 
-Pi=optimvar('Pi',length(flow),counter_path,length(edgecloud),'Type','integer','LowerBound',0,'UpperBound',1);
+Pi=optimvar('Pi',length(flow),length(edgecloud),counter_path,'Type','integer','LowerBound',0,'UpperBound',1);
 
 omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,'LowerBound',0);
 
@@ -181,9 +183,27 @@ z=optimvar('z',size(link{flow1},1),'LowerBound',0);
 % cell2mat(A(1,:));
 % OR
 % w{flow1}{find(sources==ec5),find(targets==ec4)};
+ec_cache_num_constr=sum(x,2)<=Nk';
 
+ec_cache_space_constr=Wsize*x<=Rspace;
 
+total_cache_space_constr=sum(Wsize*x,2)<=Rtotal;
 
+path_constr=sum(y,2)==ones(size(flow))';
+
+Gpe_Pi=repmat(Gpe',[1,1,2]);
+Gpe_Pi=permute(Gpe_Pi,[3,1,2]);
+ec_cross_path_constr=Pi<=Gpe_Pi;
+
+x_Pi=repmat(x,[1,1,counter_path]);
+Pi_define_constr1=Pi<=x_Pi;
+
+y_Pi=repmat(y,[length(edgecloud),1,1]);
+y_Pi=reshape(y_Pi,length(flow),length(edgecloud),counter_path);
+Pi_define_constr2=Pi<=y_Pi;
+
+Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
 % problem and objective function
 
 % solve the problem
+
