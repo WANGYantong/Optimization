@@ -203,6 +203,11 @@ y_Pi=reshape(y_Pi,length(flow),length(edgecloud),counter_path);
 Pi_define_constr2=Pi<=y_Pi;
 
 Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
+
+Rk_omega=repmat(Rk,[size(link{flow1},1),1,counter_path]);
+link_delay_constr=sum(sum(y))+sum(sum(Rk_omega.*omega,3),2)-Cl*z<=0;
+%need further check!
+
 % problem and objective function
 
 % solve the problem
