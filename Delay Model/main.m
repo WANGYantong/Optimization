@@ -2,7 +2,7 @@ clear
 clc
 
 rng(1);
-%%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the netwrok
 flowname={'flow1','flow2'}; %$$%
 N=length(flowname);
@@ -56,7 +56,6 @@ suptitle('Network Topology');
 for v=1:length(flow)
     link{v}=G{v}.Edges;
 end
-
 
 % the set of paths
 % the paths for flow1 and flow2 are same 
@@ -155,8 +154,9 @@ for ii=1:length(ce)
 end
 
 % each server service rate
+% assuming service rates for different flows are same
 % unit: Mbps
-mu=poissrnd(120,length(flow),length(edgecloud));
+mu=poissrnd(120,1,length(edgecloud));
 
 % delay tolerance
 % unit: Ms
@@ -167,15 +167,22 @@ delta=200;
 Tpr=50;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
-x=optimvar('x',length(flow),length(edgecloud),'Type','integer','LowerBound',0,'UpperBound',1);
+x=optimvar('x',length(flow),length(edgecloud),'Type','integer',...
+    'LowerBound',0,'UpperBound',1);
 
-y=optimvar('y',length(flow),counter_path,'Type','integer','LowerBound',0,'UpperBound',1);
+y=optimvar('y',length(flow),counter_path,'Type','integer',...
+    'LowerBound',0,'UpperBound',1);
 
-Pi=optimvar('Pi',length(flow),length(edgecloud),counter_path,'Type','integer','LowerBound',0,'UpperBound',1);
+Pi=optimvar('Pi',length(flow),length(edgecloud),counter_path,...
+    'Type','integer','LowerBound',0,'UpperBound',1);
 
-omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,'LowerBound',0);
+omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,...
+    'LowerBound',0);
 
 z=optimvar('z',size(link{flow1},1),'LowerBound',0);
+
+delta_link=optimvar('delta_link','LowerBound',0);
+delta_edge=optimvar('delta_edge','LowerBound',0);
 
 %%%%%%%%%%%%%%%%%%%%%%%% constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % change the format of w
@@ -191,7 +198,7 @@ total_cache_space_constr=sum(Wsize*x,2)<=Rtotal;
 
 path_constr=sum(y,2)==ones(size(flow))';
 
-Gpe_Pi=repmat(Gpe',[1,1,2]);
+Gpe_Pi=repmat(Gpe',[1,1,length(flow)]);
 Gpe_Pi=permute(Gpe_Pi,[3,1,2]);
 ec_cross_path_constr=Pi<=Gpe_Pi;
 
@@ -205,8 +212,28 @@ Pi_define_constr2=Pi<=y_Pi;
 Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
 
 Rk_omega=repmat(Rk,[size(link{flow1},1),1,counter_path]);
-link_delay_constr=sum(sum(y))+sum(sum(Rk_omega.*omega,3),2)-Cl*z<=0;
-%need further check!
+Rk_y=repmat(Rk',[1,counter_path]);
+link_delay_constr=sum(sum(Rk_y.*y,2))+...
+    sum(sum(Rk_omega.*omega,3),2)-Cl*z<=0;
+
+link_slack_constr=sum(z)<=delta_link;
+
+z_omega=repmat(z,[1,length(flow),counter_path]);
+omega_define_constr1=omega<=z_omega;
+
+[m,n]=size(y);
+y_omega=reshape(y,1,m*n);
+y_omega=repmat(y_omega,[size(link{flow1},1),1]);
+y_omega=reshape(y_omega,size(link{flow1},1),length(flow),counter_path);
+M=99999999; %sufficiently large number
+omega_define_constr2=omega<=M*y_omega;
+
+omega_define_constr3=omega>=M*(y_omega-1);
+
+% lammax=GetMaxLambda(mu,ce,delta_edge);
+% edge_delay_constr=sum(lambda.*x,1)<=lammax;
+
+total_delay_constr=delta_link+delta_edge+Tpr<=delta;
 
 % problem and objective function
 
