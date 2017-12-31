@@ -160,11 +160,11 @@ mu=poissrnd(120,1,length(edgecloud));
 
 % delay tolerance
 % unit: Ms
-delta=200;
+delta=50;
 
 % propagation delay
 % unit: Ms
-Tpr=50;
+Tpr=10;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 x=optimvar('x',length(flow),length(edgecloud),'Type','integer',...
@@ -180,9 +180,6 @@ omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,...
     'LowerBound',0);
 
 z=optimvar('z',size(link{flow1},1),'LowerBound',0);
-
-delta_link=optimvar('delta_link','LowerBound',0);
-delta_edge=optimvar('delta_edge','LowerBound',0);
 
 %%%%%%%%%%%%%%%%%%%%%%%% constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % change the format of w
@@ -216,6 +213,7 @@ Rk_y=repmat(Rk',[1,counter_path]);
 link_delay_constr=sum(sum(Rk_y.*y,2))+...
     sum(sum(Rk_omega.*omega,3),2)-Cl*z<=0;
 
+delta_link=GetWorstLinkDelay(Cl,Rk,path);
 link_slack_constr=sum(z)<=delta_link;
 
 z_omega=repmat(z,[1,length(flow),counter_path]);
@@ -230,10 +228,9 @@ omega_define_constr2=omega<=M*y_omega;
 
 omega_define_constr3=omega>=M*(y_omega-1);
 
-% lammax=GetMaxLambda(mu,ce,delta_edge);
-% edge_delay_constr=sum(lambda.*x,1)<=lammax;
-
-total_delay_constr=delta_link+delta_edge+Tpr<=delta;
+delta_edge=delta-Tpr-delta_link;
+lammax=GetMaxLambda(mu,ce,delta_edge);
+edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
 % problem and objective function
 
