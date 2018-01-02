@@ -81,22 +81,31 @@ end
 % get the number of path
 counter_path=0;
 for ii=1:numel(path)
+    if isempty(path{ii})
+        counter_path=counter_path+1;
+        continue;
+    end
 	counter_path=counter_path+numel(path{ii});
 end
 
 Gpe=zeros(counter_path, numel(edgecloud));
-index=0;
+index=1;
 for ii=1:numel(path)
     if isempty(path{ii})
+        if find(edgecloud==sources)
+            Gpe(index,sources)=1;
+            index=index+1;
+        end
         continue;
     end
     for jj=1:numel(path{ii})
-        src=find(edgecloud==path{ii}{jj}(1));
+%         src=find(edgecloud==path{ii}{jj}(1));
         snk=find(edgecloud==path{ii}{jj}(end));
-        if ~isempty(src) && ~isempty(snk)
-            index=index+1;
-            Gpe(index,src)=1;
+%         if ~isempty(src) && ~isempty(snk)
+        if ~isempty(snk)
+%             Gpe(index,src)=1;
             Gpe(index,snk)=1;
+            index=index+1;
         end
     end
 end
@@ -108,6 +117,7 @@ alpha=randi(100);
 % utilization(ec1)
 utilization=rand(size(edgecloud));
 utilization=utilization*0.8;  % CHEAT!!!!!
+% utilization=utilization*0;
 
 % mobile moving probability
 probability=zeros(size(names));
@@ -249,6 +259,8 @@ for ii=1:numel(flow)
         counter=1;
         for jj=1:numel(w{ii})
                 if isempty(w{ii}{jj})
+                        w_Pi(ii,counter)=0;
+                        counter=counter+1;
                         continue;
                 end
                 for kk=1:numel(w{ii}{jj})
@@ -263,7 +275,7 @@ w_Pi=permute(w_Pi,[1,3,2]);
 objfun2=sum(sum(probability_Pi.*w_Pi.*Pi,3),2)';
 
 
-w_max=[max(w_Pi(1,1,:)),max(w_Pi(2,1,:))];
+w_max=[max(w_Pi(1,1,:)),max(w_Pi(2,1,:))]*10;
 
 objfun3=(1-sum(probability_x.*x,2))'.*w_max;
 
@@ -285,5 +297,13 @@ ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
-% solve the problem
+%%%%%%%%%%%%%%%%%%% solve the problem %%%%%%%%%%%%%%%%%%%%
+% opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
+opts=optimoptions('intlinprog','Display','off');
+[sol,fval,exitflag,output]=solve(ProCache,opts);
+
+if isempty(sol)
+    disp('The solver did not return a solution.')
+    return
+end
 

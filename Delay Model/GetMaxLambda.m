@@ -21,7 +21,7 @@ end
 lb = zeros(size(mu));
 ub = mu .* ce;
 x0 = lb;
-options = optimoptions(@fmincon, 'Algorithm', 'sqp');
+options = optimoptions(@fmincon, 'Algorithm', 'sqp','Display','off');
 lammax = x0;
 
 for ii = 1:length(lammax)
