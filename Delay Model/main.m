@@ -239,7 +239,12 @@ ProCache=optimproblem;
 
 objfun1=alpha./(1-utilization)*x';
 
-w_obj=cell(size(flow));
+
+probability_x=probability(edgecloud(1):edgecloud(end));
+probability_x=repmat(probability_x,[length(flow),1]);
+probability_Pi=repmat(probability_x,[1,1,counter_path]);
+
+w_Pi=zeros(length(flow),counter_path);
 for ii=1:numel(flow)
         counter=1;
         for jj=1:numel(w{ii})
@@ -247,14 +252,38 @@ for ii=1:numel(flow)
                         continue;
                 end
                 for kk=1:numel(w{ii}{jj})
-                        w_obj{ii}{counter}=w{ii}{jj}{kk};
+                        w_Pi(ii,counter)=w{ii}{jj}{kk};
                         counter=counter+1;
                 end
         end
 end
-objfun2=zeros(size(flow));
-%reshape Pi like y_omega and happy new year!
+w_Pi=repmat(w_Pi,[1,1,length(edgecloud)]);
+w_Pi=permute(w_Pi,[1,3,2]);
 
+objfun2=sum(sum(probability_Pi.*w_Pi.*Pi,3),2)';
+
+
+w_max=[max(w_Pi(1,1,:)),max(w_Pi(2,1,:))];
+
+objfun3=(1-sum(probability_x.*x,2))'.*w_max;
+
+
+ProCache.Objective=sum(objfun1+objfun2+objfun3);
+
+ProCache.Constraints.ec_cache_num_constr=ec_cache_num_constr;
+ProCache.Constraints.ec_cache_space_constr=ec_cache_space_constr;
+ProCache.Constraints.total_cache_space_constr=total_cache_space_constr;
+ProCache.Constraints.path_constr=path_constr;
+ProCache.Constraints.ec_cross_path_constr=ec_cross_path_constr;
+ProCache.Constraints.Pi_define_constr1=Pi_define_constr1;
+ProCache.Constraints.Pi_define_constr2=Pi_define_constr2;
+ProCache.Constraints.Pi_define_constr3=Pi_define_constr3;
+ProCache.Constraints.link_delay_constr=link_delay_constr;
+ProCache.Constraints.link_slack_constr=link_slack_constr;
+ProCache.Constraints.omega_define_constr1=omega_define_constr1;
+ProCache.Constraints.omega_define_constr2=omega_define_constr2;
+ProCache.Constraints.omega_define_constr3=omega_define_constr3;
+ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
 % solve the problem
 
