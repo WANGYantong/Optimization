@@ -232,7 +232,29 @@ delta_edge=delta-Tpr-delta_link;
 lammax=GetMaxLambda(mu,ce,delta_edge);
 edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
-% problem and objective function
+%%%%%%%%%%%%%% create problem and objective function %%%%%%%%%%%%%
+ProCache=optimproblem;
+%use E instead of S here
+%S=intersect(targets,edgecloud);
+
+objfun1=alpha./(1-utilization)*x';
+
+w_obj=cell(size(flow));
+for ii=1:numel(flow)
+        counter=1;
+        for jj=1:numel(w{ii})
+                if isempty(w{ii}{jj})
+                        continue;
+                end
+                for kk=1:numel(w{ii}{jj})
+                        w_obj{ii}{counter}=w{ii}{jj}{kk};
+                        counter=counter+1;
+                end
+        end
+end
+objfun2=zeros(size(flow));
+%reshape Pi like y_omega and happy new year!
+
 
 % solve the problem
 

@@ -11,6 +11,10 @@ function link_delay = GetWorstLinkDelay(Cl, Rk, path)
 %   Output variables:
 %    link_delay: the biggest delay tolerance
 
+if nargin ~= 3
+        error('Error. \n Illegal input number')
+end
+
 basic = sum(Rk)/(Cl-sum(Rk)); % unit ms
 factornum = 0;
 
