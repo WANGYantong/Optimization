@@ -328,10 +328,26 @@ if isempty(sol)
 end
 
 [s1,t1]=find(sol.x);
+[s2,t2]=find(sol.y);
+
+path_array=cell(counter_path,1);
+index=1;
+for ii=1:numel(path)
+    if isempty(path{ii})
+        index=index+1;
+        continue;
+    end
+    for jj=1:numel(path{ii})
+        path_array{index}=path{ii}{jj};
+        index=index+1;
+    end
+end
+
 figure(h);
 hold on
 for ii=1:length(flow)
     highlight(p(ii),edgecloud(t1(ii)),'nodecolor','y');
+    highlight(p(ii),path_array{t2(ii)},'edgecolor','m');
 end
 hold off
 
