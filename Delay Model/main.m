@@ -31,10 +31,10 @@ end
 original_ec=ec5;
 
 % plot each flow graph
-figure;
+h=figure;
 cxd=['b','k','r','g','c','m','y'];
 for ii=1:length(flow)
-    subplot(2,1,ii);
+    subplot(length(flow),1,ii);
     LWidths{ii}=3*G{ii}.Edges.Weight/max(G{ii}.Edges.Weight);
     p(ii)=plot(G{ii},'EdgeLabel',G{ii}.Edges.Weight,'NodeLabel',...
         G{ii}.Nodes.Name,'LineWidth',LWidths{ii});
@@ -197,18 +197,25 @@ z=optimvar('z',size(link{flow1},1),'LowerBound',0);
 % cell2mat(A(1,:));
 % OR
 % w{flow1}{find(sources==ec5),find(targets==ec4)};
+
+%ec_cache_num_constr
 ec_cache_num_constr=sum(x,2)<=Nk';
 
+%ec_cache_space_constr
 ec_cache_space_constr=Wsize*x<=Rspace;
 
+%total_cache_space_constr
 total_cache_space_constr=sum(Wsize*x,2)<=Rtotal;
 
+%path_constr
 path_constr=sum(y,2)==ones(size(flow))';
 
+%ec_cross_path_constr
 Gpe_Pi=repmat(Gpe',[1,1,length(flow)]);
 Gpe_Pi=permute(Gpe_Pi,[3,1,2]);
 ec_cross_path_constr=Pi<=Gpe_Pi;
 
+%Pi_define_constr
 x_Pi=repmat(x,[1,1,counter_path]);
 Pi_define_constr1=Pi<=x_Pi;
 
@@ -218,15 +225,26 @@ Pi_define_constr2=Pi<=y_Pi;
 
 Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
 
-%some questions for this constraints
+%link_delay_constr
 Rk_omega=repmat(Rk,[size(link{flow1},1),1,counter_path]);
 Rk_y=repmat(Rk',[1,counter_path]);
-link_delay_constr=sum(sum(Rk_y.*y,2))+...
-    sum(sum(Rk_omega.*omega,3),2)-Cl*z<=0;
+beta=GetPathLinkRel(G{1},"undirected",path,counter_path);
 
+omega_link=squeeze(sum(Rk_omega.*omega,2));
+omega_link=omega_link*beta';
+omega_link_vec=optimexpr(length(omega_link));
+for ii=1:length(omega_link_vec)
+    omega_link_vec(ii)=omega_link(ii,ii);
+end
+
+link_delay_constr=(sum(Rk_y.*y,1)*beta')'+...
+    omega_link_vec-Cl*z<=0;
+
+%link_slack_constr
 delta_link=GetWorstLinkDelay(Cl,Rk,path);
 link_slack_constr=sum(z)<=delta_link;
 
+%omega_define_constr
 z_omega=repmat(z,[1,length(flow),counter_path]);
 omega_define_constr1=omega<=z_omega;
 
@@ -239,6 +257,7 @@ omega_define_constr2=omega<=M*y_omega;
 
 omega_define_constr3=omega>=M*(y_omega-1)+z_omega;
 
+%edge_delay_constr
 delta_edge=delta-Tpr-delta_link;
 lammax=GetMaxLambda(mu,ce,delta_edge);
 edge_delay_constr=sum(lambda.*x,1)<=lammax;
@@ -307,4 +326,12 @@ if isempty(sol)
     disp('The solver did not return a solution.')
     return
 end
+
+[s1,t1]=find(sol.x);
+figure(h);
+hold on
+for ii=1:length(flow)
+    highlight(p(ii),edgecloud(t1(ii)),'nodecolor','y');
+end
+hold off
 
