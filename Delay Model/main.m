@@ -218,6 +218,7 @@ Pi_define_constr2=Pi<=y_Pi;
 
 Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
 
+%some questions for this constraints
 Rk_omega=repmat(Rk,[size(link{flow1},1),1,counter_path]);
 Rk_y=repmat(Rk',[1,counter_path]);
 link_delay_constr=sum(sum(Rk_y.*y,2))+...
@@ -233,10 +234,10 @@ omega_define_constr1=omega<=z_omega;
 y_omega=reshape(y,1,m*n);
 y_omega=repmat(y_omega,[size(link{flow1},1),1]);
 y_omega=reshape(y_omega,size(link{flow1},1),length(flow),counter_path);
-M=99999999; %sufficiently large number
+M=1000000; %sufficiently large number
 omega_define_constr2=omega<=M*y_omega;
 
-omega_define_constr3=omega>=M*(y_omega-1);
+omega_define_constr3=omega>=M*(y_omega-1)+z_omega;
 
 delta_edge=delta-Tpr-delta_link;
 lammax=GetMaxLambda(mu,ce,delta_edge);
