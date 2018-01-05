@@ -1,15 +1,15 @@
 clear
 clc
 
-rng(1);
+rng(2);
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the netwrok
-flowname={'flow1','flow2'}; %$$%
+flowname={'flow1','flow2','flow3'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1, flow2];
+flow=[flow1, flow2, flow3];
 
 % the nodes and edge clouds in the network 
 names={'ec1','ec2','ec3','ec4','ec5',...
@@ -40,7 +40,7 @@ for ii=1:length(flow)
         G{ii}.Nodes.Name,'LineWidth',LWidths{ii});
     p(ii).Marker='o';
     p(ii).MarkerSize=8;
-    p(ii).EdgeColor=cxd(ii); 
+    p(ii).EdgeColor=cxd(1); 
     p(ii).LineStyle='--';
     highlight(p(ii),edgecloud,'nodecolor','r');
     highlight(p(ii),original_ec,'nodecolor','g'); %the original edge cloud
@@ -142,12 +142,12 @@ Rspace=Rspace.*(1-utilization);
 % remaining cache space in total
 Rtotal=50000;
 
-% the rate of each flow
-% THINK OUT THE RELATIONSHIP WITH LAMBDA!
-Rk=randi([3,8],size(flow))*100;
-
 % link capacity
 Cl=1000;
+
+% the rate of each flow
+% THINK OUT THE RELATIONSHIP WITH LAMBDA!
+Rk=randi([1,floor(10/length(flow))],size(flow))*100;
 
 % arriving rate
 % unit: Mbps
@@ -199,7 +199,8 @@ z=optimvar('z',size(link{flow1},1),'LowerBound',0);
 % w{flow1}{find(sources==ec5),find(targets==ec4)};
 
 %ec_cache_num_constr
-ec_cache_num_constr=sum(x,2)<=Nk';
+% ec_cache_num_constr=sum(x,2)<=Nk';
+ec_cache_num_constr=sum(x,2)==Nk';
 
 %ec_cache_space_constr
 ec_cache_space_constr=Wsize*x<=Rspace;
@@ -294,8 +295,10 @@ w_Pi=permute(w_Pi,[1,3,2]);
 
 objfun2=sum(sum(probability_Pi.*w_Pi.*Pi,3),2)';
 
-
-w_max=[max(w_Pi(1,1,:)),max(w_Pi(2,1,:))]*10;
+w_max=[];
+for ii=1:length(flow)
+    w_max=[w_max,max(w_Pi(ii,1,:))*10];
+end
 
 objfun3=(1-sum(probability_x.*x,2))'.*w_max;
 
@@ -327,8 +330,8 @@ if isempty(sol)
     return
 end
 
-[s1,t1]=find(sol.x);
-[s2,t2]=find(sol.y);
+[s1,t1]=find(round(sol.x));
+[s2,t2]=find(round(sol.y));
 
 path_array=cell(counter_path,1);
 index=1;
