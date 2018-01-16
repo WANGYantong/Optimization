@@ -361,3 +361,16 @@ for ii=1:numel(buff)
     counter_constraints=counter_constraints+numel(buff{ii});
 end
 
+%examine the sol
+bool_buff=zeros(numel(buff),1);
+for ii=1:numel(buff)
+    if max(infeasibility(buff{ii},sol))<=output.constrviolation
+        bool_buff(ii)=1;
+    end
+end
+if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
+    disp('the solution is feasible')
+else
+    disp('the solution is not feasible')
+end
+    
