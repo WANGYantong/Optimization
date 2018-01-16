@@ -42,7 +42,7 @@ if src == snk % parameter checking
     return
 end
 
-% get adjency matrix
+% get adjacency matrix
 nn = numnodes(graph);
 [s,t] = findedge(graph);
 adj = sparse(s,t,graph.Edges.Weight,nn,nn);

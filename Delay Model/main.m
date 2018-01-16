@@ -354,3 +354,10 @@ for ii=1:length(flow)
 end
 hold off
 
+%caculate the number of constrains
+buff=struct2cell(ProCache.Constraints);
+counter_constraints=0;
+for ii=1:numel(buff)
+    counter_constraints=counter_constraints+numel(buff{ii});
+end
+
