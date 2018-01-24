@@ -111,7 +111,8 @@ for ii=1:numel(path)
 end
 
 % caching cost impact factor
-alpha=randi(100);
+%alpha=randi(100);
+alpha=1;
 
 % utilization for each edge cloud
 % utilization(ec1)
@@ -127,9 +128,11 @@ for ii=1:length(targets)-1
     probability(targets(end))=probability(targets(end))...
         -probability(targets(ii));
 end
+% probability=[0,0,0.4166,0.4559,0.3672,0,0.0602];
 
 % the maximum number of edge cloud used to cache
 Nk=ones(size(flow));
+% Nk=zeros(size(flow));
 
 % size of cache items
 % 0~5000 Mbit
@@ -330,6 +333,28 @@ if isempty(sol)
     return
 end
 
+%caculate the number of constrains
+buff=struct2cell(ProCache.Constraints);
+counter_constraints=0;
+for ii=1:numel(buff)
+    counter_constraints=counter_constraints+numel(buff{ii});
+end
+fprintf('The total number of constraints are %d.\n', counter_constraints);
+
+%examine the sol
+bool_buff=zeros(numel(buff),1);
+for ii=1:numel(buff)
+    if max(infeasibility(buff{ii},sol))<=output.constrviolation
+        bool_buff(ii)=1;
+    end
+end
+if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
+    disp('the solution is feasible')
+else
+    disp('the solution is not feasible')
+end
+
+%draw the result of MILP
 [s1,t1]=find(round(sol.x));
 [s2,t2]=find(round(sol.y));
 
@@ -354,23 +379,5 @@ for ii=1:length(flow)
 end
 hold off
 
-%caculate the number of constrains
-buff=struct2cell(ProCache.Constraints);
-counter_constraints=0;
-for ii=1:numel(buff)
-    counter_constraints=counter_constraints+numel(buff{ii});
-end
+%greedy algorithm
 
-%examine the sol
-bool_buff=zeros(numel(buff),1);
-for ii=1:numel(buff)
-    if max(infeasibility(buff{ii},sol))<=output.constrviolation
-        bool_buff(ii)=1;
-    end
-end
-if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
-    disp('the solution is feasible')
-else
-    disp('the solution is not feasible')
-end
-    
