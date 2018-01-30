@@ -1,4 +1,4 @@
-function pth = GetPathBetweenNode(graph, direction, src, snk, verbose)
+function pth = GetPathBetweenNode(graph, src, snk, verbose)
 %PATHBETWEENNODES Return all paths between two nodes of a graph
 %
 % pth = GetPathBetweenNode(graph, direction, src, snk, verbose)
@@ -14,8 +14,6 @@ function pth = GetPathBetweenNode(graph, direction, src, snk, verbose)
 %
 %   graph:  the graph
 %
-%   direction: indicate graph is 'directed' (in default) or 'undirected'
-%
 %   src:    index of starting node
 %
 %   snk:    index of target node
@@ -30,9 +28,10 @@ function pth = GetPathBetweenNode(graph, direction, src, snk, verbose)
 %           of nodes from src to snk.
 
 % Copyright 2014 Kelly Kearney
-% Modified by Wang Yantong 11/12/2017
+% 1st Modified by Wang Yantong 11/12/2017
+% 2nd Modified by Wang Yantong 30/01/2018
 
-if nargin < 5
+if nargin < 4
     verbose = false;
 end
 
@@ -43,12 +42,13 @@ if src == snk % parameter checking
 end
 
 % get adjacency matrix
-nn = numnodes(graph);
-[s,t] = findedge(graph);
-adj = sparse(s,t,graph.Edges.Weight,nn,nn);
-if direction == "undirected"
-    adj = adj + adj.' - diag(diag(adj));
-end
+% nn = numnodes(graph);
+% [s,t] = findedge(graph);
+% adj = sparse(s,t,graph.Edges.Weight,nn,nn);
+% if direction == "undirected"
+%     adj = adj + adj.' - diag(diag(adj));
+% end
+adj=adjacency(graph);
 
 n = size(adj,1);
 stack = src; % current path

@@ -1,56 +1,37 @@
 clear
 clc
 
-rng(2);
+rng(1);
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
-% the set of flows in the netwrok
-flowname={'flow1','flow2','flow3'}; %$$%
+% the set of flows in the network
+flowname={'flow1'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1, flow2, flow3];
+flow=[flow1];
 
-% the nodes and edge clouds in the network 
-names={'ec1','ec2','ec3','ec4','ec5',...
-    'n1','n2'}; %$$%
-N=length(names);
+% the graph
+[G{1},vertice_names,p{1}]=GenerateGraph();
+N=length(vertice_names);
 for v=1:N
-    eval([names{v},'=',num2str(v),';']);
+    eval([vertice_names{v},'=',num2str(v),';']);
 end
-node=[n1,n2]; %$$%
-edgecloud=[ec1,ec2,ec3,ec4,ec5]; %$$%
+server=[data_server];
+relay=[relay1,relay2,relay3,relay4,relay5,relay6,relay7,relay8,relay9,...
+    relay10,relay11,relay12,relay13,relay14,relay15];
+edge_cloud=[ec1,ec2,ec3,ec4,ec5,ec6,ec7,ec8,ec9,ec10,ec11,ec12,ec13,...
+    ec14,ec15];
+base_station=[bs1,bs2,bs3,bs4,bs5,bs6,bs7,bs8,bs9,bs10];
 
-% generate the undirected graph
-s=[ec1,ec1,n1, n1, n1, ec2,ec2,ec5]; %$$%
-t=[n1, ec2,ec3,ec4,ec5,ec5,n2, n2 ]; %$$%
-for ii=1:length(flow)
-    weights{ii}=10*randi([1,10],size(s));
-    G{ii}=graph(s,t,weights{ii},names);
+% use subgraph instead of full graph in consider of the cache management 
+% would not happen on backbone
+N=length(flow);
+for v=1:N
+    G{v}=subgraph(G{v},[edge_cloud,base_station]);
 end
-original_ec=ec5;
 
-% plot each flow graph
-h=figure;
-cxd=['b','k','r','g','c','m','y'];
-for ii=1:length(flow)
-    subplot(length(flow),1,ii);
-    LWidths{ii}=3*G{ii}.Edges.Weight/max(G{ii}.Edges.Weight);
-    p(ii)=plot(G{ii},'EdgeLabel',G{ii}.Edges.Weight,'NodeLabel',...
-        G{ii}.Nodes.Name,'LineWidth',LWidths{ii});
-    p(ii).Marker='o';
-    p(ii).MarkerSize=8;
-    p(ii).EdgeColor=cxd(1); 
-    p(ii).LineStyle='--';
-    highlight(p(ii),edgecloud,'nodecolor','r');
-    highlight(p(ii),original_ec,'nodecolor','g'); %the original edge cloud
-    p(ii).XData=[3,4,1,2,3,2,5]; 
-    p(ii).YData=[3,2,1,1,1,2,1]; 
-    title(['Flow',num2str(ii)]);
-end
-suptitle('Network Topology');
-
-%%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%% generated structure of graph%%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of links
 % link{1}{1,'EndNodes'}{1}
 for v=1:length(flow)
@@ -58,23 +39,19 @@ for v=1:length(flow)
 end
 
 % the set of paths
-% the paths for flow1 and flow2 are same 
-% path{1,1}{1}(1)
-%sources=[ec1,ec2,ec3,ec4,ec5];
-sources=original_ec;
-targets=[ec3,ec4,ec5,n2];
+sources=bs6;
+targets=[bs4,bs5,bs6,bs7,bs8];
 path=cell(length(sources),length(targets));
 for ii=1:length(sources)
     for jj=1:length(targets)
-        path{ii,jj}=GetPathBetweenNode(G{1},'undirected',sources(ii),...
-            targets(jj));
+        path{ii,jj}=GetPathBetweenNode(G{1},sources(ii),targets(jj));
     end
 end
 
 % path cost OR routing cost
 w=cell(1,length(flow));
 for ii=1:length(flow)
-   w{ii}=GetRoutingCost(G{ii}, 'undirected', path);
+   w{ii}=GetRoutingCost(G{ii}, path);
 end
 
 % matrix for recording path reached edge cloud
@@ -88,19 +65,22 @@ for ii=1:numel(path)
 	counter_path=counter_path+numel(path{ii});
 end
 
-Gpe=zeros(counter_path, numel(edgecloud));
+Gpe=zeros(counter_path, numel(edge_cloud));
 index=1;
 for ii=1:numel(path)
     if isempty(path{ii})
-        if find(edgecloud==sources)
-            Gpe(index,sources)=1;
+        % sources are bs, look for the ec link with this bs
+        sources_ec=neighbors(G{1},sources);
+        if find(edge_cloud==sources_ec)
+            Gpe(index,sources_ec)=1;
             index=index+1;
         end
         continue;
     end
     for jj=1:numel(path{ii})
 %         src=find(edgecloud==path{ii}{jj}(1));
-        snk=find(edgecloud==path{ii}{jj}(end));
+        %the last element in path sequence is bs, not sc
+        snk=find(edge_cloud==path{ii}{jj}(end-1)); 
 %         if ~isempty(src) && ~isempty(snk)
         if ~isempty(snk)
 %             Gpe(index,src)=1;
@@ -110,25 +90,32 @@ for ii=1:numel(path)
     end
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % caching cost impact factor
 %alpha=randi(100);
-alpha=1;
+alpha=5;
 
 % utilization for each edge cloud
 % utilization(ec1)
-utilization=rand(size(edgecloud));
+utilization=rand(size(edge_cloud));
 utilization=utilization*0.8;  % CHEAT!!!!!
-% utilization=utilization*0;
 
-% mobile moving probability
-probability=zeros(size(names));
-probability(targets(end))=1;
+% mobile moving probability of ec
+% the probability of moving to nearing bs
+probability_bc=zeros(size(base_station));
+probability_bc(targets(end))=1;
 for ii=1:length(targets)-1
-    probability(targets(ii))=rand()/(length(targets)-1);
-    probability(targets(end))=probability(targets(end))...
-        -probability(targets(ii));
+    probability_bc(targets(ii))=rand()/(length(targets)-1);
+    probability_bc(targets(end))=probability_bc(targets(end))...
+        -probability_bc(targets(ii));
 end
-% probability=[0,0,0.4166,0.4559,0.3672,0,0.0602];
+% calculate the probability of corresponding ec of these bs in targets
+probability_ec=zeros(size(edge_cloud));
+for ii=1:numel(targets)
+    index=neighbors(G{1},targets(ii));
+    probability_ec(index)=probability_ec(index)+...
+        probability_bc(targets(ii));
+end
 
 % the maximum number of edge cloud used to cache
 Nk=ones(size(flow));
@@ -139,7 +126,7 @@ Nk=ones(size(flow));
 Wsize=1000*randi(5,size(flow));
 
 % remaining cache space for each edge cloud
-Rspace=ones(size(edgecloud))*10000;
+Rspace=ones(size(edge_cloud))*10000;
 Rspace=Rspace.*(1-utilization);
 
 % remaining cache space in total
@@ -154,10 +141,10 @@ Rk=randi([1,floor(10/length(flow))],size(flow))*100;
 
 % arriving rate
 % unit: Mbps
-lambda=poissrnd(200,length(flow),length(edgecloud));
+lambda=poissrnd(200,length(flow),length(edge_cloud));
 
 % number of servers
-ce=zeros(size(edgecloud));
+ce=zeros(size(edge_cloud));
 for ii=1:length(ce)
     if rand()>0.5
         ce(ii)=2;
@@ -169,7 +156,7 @@ end
 % each server service rate
 % assuming service rates for different flows are same
 % unit: Mbps
-mu=poissrnd(120,1,length(edgecloud));
+mu=poissrnd(120,1,length(edge_cloud));
 
 % delay tolerance
 % unit: Ms
@@ -180,13 +167,13 @@ delta=50;
 Tpr=10;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
-x=optimvar('x',length(flow),length(edgecloud),'Type','integer',...
+x=optimvar('x',length(flow),length(edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
 y=optimvar('y',length(flow),counter_path,'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
-Pi=optimvar('Pi',length(flow),length(edgecloud),counter_path,...
+Pi=optimvar('Pi',length(flow),length(edge_cloud),counter_path,...
     'Type','integer','LowerBound',0,'UpperBound',1);
 
 omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,...
@@ -223,8 +210,8 @@ ec_cross_path_constr=Pi<=Gpe_Pi;
 x_Pi=repmat(x,[1,1,counter_path]);
 Pi_define_constr1=Pi<=x_Pi;
 
-y_Pi=repmat(y,[length(edgecloud),1,1]);
-y_Pi=reshape(y_Pi,length(flow),length(edgecloud),counter_path);
+y_Pi=repmat(y,[length(edge_cloud),1,1]);
+y_Pi=reshape(y_Pi,length(flow),length(edge_cloud),counter_path);
 Pi_define_constr2=Pi<=y_Pi;
 
 Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
@@ -274,7 +261,7 @@ ProCache=optimproblem;
 objfun1=alpha./(1-utilization)*x';
 
 
-probability_x=probability(edgecloud(1):edgecloud(end));
+probability_x=probability_bc(edge_cloud(1):edge_cloud(end));
 probability_x=repmat(probability_x,[length(flow),1]);
 probability_Pi=repmat(probability_x,[1,1,counter_path]);
 
@@ -293,7 +280,7 @@ for ii=1:numel(flow)
                 end
         end
 end
-w_Pi=repmat(w_Pi,[1,1,length(edgecloud)]);
+w_Pi=repmat(w_Pi,[1,1,length(edge_cloud)]);
 w_Pi=permute(w_Pi,[1,3,2]);
 
 objfun2=sum(sum(probability_Pi.*w_Pi.*Pi,3),2)';
@@ -371,10 +358,9 @@ for ii=1:numel(path)
     end
 end
 
-figure(h);
 hold on
 for ii=1:length(flow)
-    highlight(p(ii),edgecloud(t1(ii)),'nodecolor','y');
+    highlight(p(ii),edge_cloud(t1(ii)),'nodecolor','y');
     highlight(p(ii),path_array{t2(ii)},'edgecolor','m');
 end
 hold off
