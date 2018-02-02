@@ -2,17 +2,18 @@ clear
 clc
 
 rng(1);
+tic;
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the network
-flowname={'flow1'}; %$$%
+flowname={'flow1','flow2'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1];
+flow=[flow1,flow2];
 
 % the graph
-[G{1},vertice_names,p{1}]=GenerateGraph();
+[G_full,vertice_names,p]=GenerateGraph();
 N=length(vertice_names);
 for v=1:N
     eval([vertice_names{v},'=',num2str(v),';']);
@@ -24,17 +25,19 @@ edge_cloud=[ec1,ec2,ec3,ec4,ec5,ec6,ec7,ec8,ec9,ec10,ec11,ec12,ec13,...
     ec14,ec15];
 base_station=[bs1,bs2,bs3,bs4,bs5,bs6,bs7,bs8,bs9,bs10];
 
-% use subgraph instead of full graph in consider of the cache management 
-% would not happen on backbone
-N=length(flow);
-for v=1:N
-    G{v}=subgraph(G{v},[edge_cloud,base_station]);
+% use subgraph instead of full graph for accelerating the BFS in
+% enumerating path
+NF=length(flow);
+HARDCORDED_N=1;
+for v=1:HARDCORDED_N
+    G{v}=subgraph(G_full,[edge_cloud,base_station]);
+%       G{v}=G_full;
 end
 
 %%%%%%%%%%%%%%%%%%%%% generated structure of graph%%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of links
 % link{1}{1,'EndNodes'}{1}
-for v=1:length(flow)
+for v=1:HARDCORDED_N
     link{v}=G{v}.Edges;
 end
 
@@ -49,8 +52,8 @@ for ii=1:length(sources)
 end
 
 % path cost OR routing cost
-w=cell(1,length(flow));
-for ii=1:length(flow)
+w=cell(1,HARDCORDED_N);
+for ii=1:HARDCORDED_N
    w{ii}=GetRoutingCost(G{ii}, path);
 end
 
@@ -93,29 +96,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % caching cost impact factor
 %alpha=randi(100);
-alpha=5;
+alpha=1;
 
 % utilization for each edge cloud
 % utilization(ec1)
 utilization=rand(size(edge_cloud));
 utilization=utilization*0.8;  % CHEAT!!!!!
-
-% mobile moving probability of ec
-% the probability of moving to nearing bs
-probability_bc=zeros(size(base_station));
-probability_bc(targets(end))=1;
-for ii=1:length(targets)-1
-    probability_bc(targets(ii))=rand()/(length(targets)-1);
-    probability_bc(targets(end))=probability_bc(targets(end))...
-        -probability_bc(targets(ii));
-end
-% calculate the probability of corresponding ec of these bs in targets
-probability_ec=zeros(size(edge_cloud));
-for ii=1:numel(targets)
-    index=neighbors(G{1},targets(ii));
-    probability_ec(index)=probability_ec(index)+...
-        probability_bc(targets(ii));
-end
 
 % the maximum number of edge cloud used to cache
 Nk=ones(size(flow));
@@ -137,11 +123,11 @@ Cl=1000;
 
 % the rate of each flow
 % THINK OUT THE RELATIONSHIP WITH LAMBDA!
-Rk=randi([1,floor(10/length(flow))],size(flow))*100;
+Rk=randi([1,floor(10/NF)],size(flow))*100;
 
 % arriving rate
 % unit: Mbps
-lambda=poissrnd(200,length(flow),length(edge_cloud));
+lambda=poissrnd(200,NF,length(edge_cloud));
 
 % number of servers
 ce=zeros(size(edge_cloud));
@@ -160,23 +146,23 @@ mu=poissrnd(120,1,length(edge_cloud));
 
 % delay tolerance
 % unit: Ms
-delta=50;
+delta=100;
 
 % propagation delay
 % unit: Ms
 Tpr=10;
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
-x=optimvar('x',length(flow),length(edge_cloud),'Type','integer',...
+x=optimvar('x',NF,length(edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
-y=optimvar('y',length(flow),counter_path,'Type','integer',...
+y=optimvar('y',NF,counter_path,'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
-Pi=optimvar('Pi',length(flow),length(edge_cloud),counter_path,...
+Pi=optimvar('Pi',NF,length(edge_cloud),counter_path,...
     'Type','integer','LowerBound',0,'UpperBound',1);
 
-omega=optimvar('omega',size(link{flow1},1),length(flow),counter_path,...
+omega=optimvar('omega',size(link{flow1},1),NF,counter_path,...
     'LowerBound',0);
 
 z=optimvar('z',size(link{flow1},1),'LowerBound',0);
@@ -202,7 +188,8 @@ total_cache_space_constr=sum(Wsize*x,2)<=Rtotal;
 path_constr=sum(y,2)==ones(size(flow))';
 
 %ec_cross_path_constr
-Gpe_Pi=repmat(Gpe',[1,1,length(flow)]);
+% Gpe_Pi=repmat(Gpe',[1,1,length(flow)]);
+Gpe_Pi=repmat(Gpe',[1,1,NF]);
 Gpe_Pi=permute(Gpe_Pi,[3,1,2]);
 ec_cross_path_constr=Pi<=Gpe_Pi;
 
@@ -211,7 +198,7 @@ x_Pi=repmat(x,[1,1,counter_path]);
 Pi_define_constr1=Pi<=x_Pi;
 
 y_Pi=repmat(y,[length(edge_cloud),1,1]);
-y_Pi=reshape(y_Pi,length(flow),length(edge_cloud),counter_path);
+y_Pi=reshape(y_Pi,NF,length(edge_cloud),counter_path);
 Pi_define_constr2=Pi<=y_Pi;
 
 Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
@@ -236,13 +223,13 @@ delta_link=GetWorstLinkDelay(Cl,Rk,path);
 link_slack_constr=sum(z)<=delta_link;
 
 %omega_define_constr
-z_omega=repmat(z,[1,length(flow),counter_path]);
+z_omega=repmat(z,[1,NF,counter_path]);
 omega_define_constr1=omega<=z_omega;
 
 [m,n]=size(y);
 y_omega=reshape(y,1,m*n);
 y_omega=repmat(y_omega,[size(link{flow1},1),1]);
-y_omega=reshape(y_omega,size(link{flow1},1),length(flow),counter_path);
+y_omega=reshape(y_omega,size(link{flow1},1),NF,counter_path);
 M=1000000; %sufficiently large number
 omega_define_constr2=omega<=M*y_omega;
 
@@ -260,13 +247,19 @@ ProCache=optimproblem;
 
 objfun1=alpha./(1-utilization)*x';
 
-
-probability_x=probability_bc(edge_cloud(1):edge_cloud(end));
-probability_x=repmat(probability_x,[length(flow),1]);
+% probability_x=probability_ec(edge_cloud(1):edge_cloud(end));
+% probability_x=repmat(probability_x,[NF,1]);
+probability_x = [];
+for ii = 1:NF
+   probability_x=[probability_x;...
+       GetFlowProbability( base_station, targets, edge_cloud, G)];
+end
 probability_Pi=repmat(probability_x,[1,1,counter_path]);
 
-w_Pi=zeros(length(flow),counter_path);
-for ii=1:numel(flow)
+% w_Pi=zeros(length(flow),counter_path);
+% for ii=1:numel(flow)
+w_Pi=zeros(HARDCORDED_N,counter_path);
+for ii=1:HARDCORDED_N
         counter=1;
         for jj=1:numel(w{ii})
                 if isempty(w{ii}{jj})
@@ -285,10 +278,11 @@ w_Pi=permute(w_Pi,[1,3,2]);
 
 objfun2=sum(sum(probability_Pi.*w_Pi.*Pi,3),2)';
 
-w_max=[];
-for ii=1:length(flow)
-    w_max=[w_max,max(w_Pi(ii,1,:))*10];
-end
+% w_max=[];
+% for ii=1:length(flow)
+%     w_max=[w_max,shortestpath(G_full{1},sources,data_server)];
+% end
+w_max=1200;
 
 objfun3=(1-sum(probability_x.*x,2))'.*w_max;
 
@@ -359,11 +353,12 @@ for ii=1:numel(path)
 end
 
 hold on
-for ii=1:length(flow)
-    highlight(p(ii),edge_cloud(t1(ii)),'nodecolor','y');
-    highlight(p(ii),path_array{t2(ii)},'edgecolor','m');
+for ii=1:NF
+    highlight(p,edge_cloud(t1(ii)),'nodecolor','c');
+    highlight(p,path_array{t2(ii)},'edgecolor','m');
 end
 hold off
 
+all_time=toc;
+display(all_time);
 %greedy algorithm
-
