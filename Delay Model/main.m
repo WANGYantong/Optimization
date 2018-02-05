@@ -5,12 +5,12 @@ rng(1);
 tic;
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the network
-flowname={'flow1','flow2'}; %$$%
+flowname={'flow1','flow2','flow3','flow4'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1,flow2];
+flow=[flow1,flow2,flow3,flow4];
 
 % the graph
 [G_full,vertice_names,p]=GenerateGraph();
@@ -54,7 +54,7 @@ end
 % path cost OR routing cost
 w=cell(1,HARDCORDED_N);
 for ii=1:HARDCORDED_N
-   w{ii}=GetRoutingCost(G{ii}, path);
+   w{ii}=GetRoutingCost(G{ii}, 'undirected',path);
 end
 
 % matrix for recording path reached edge cloud
