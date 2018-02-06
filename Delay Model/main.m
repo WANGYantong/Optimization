@@ -5,12 +5,12 @@ rng(1);
 tic;
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the network
-flowname={'flow1','flow2','flow3','flow4'}; %$$%
+flowname={'flow1'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1,flow2,flow3,flow4];
+flow=[flow1];
 
 % the graph
 [G_full,vertice_names,p]=GenerateGraph();
@@ -112,7 +112,8 @@ Nk=ones(size(flow));
 Wsize=1000*randi(5,size(flow));
 
 % remaining cache space for each edge cloud
-Rspace=ones(size(edge_cloud))*10000;
+Fullspace=10000;
+Rspace=ones(size(edge_cloud))*Fullspace;
 Rspace=Rspace.*(1-utilization);
 
 % remaining cache space in total
@@ -361,4 +362,13 @@ hold off
 
 all_time=toc;
 display(all_time);
-%greedy algorithm
+
+
+%%%%%%%%%%%%%%%%%%% greedy algorithm %%%%%%%%%%%%%%%%%%%%
+[greedy_cache_node, greedy_total_cost]=Greedy(probability_x,utilization,...
+    Wsize, Rspace, Fullspace, Rtotal, G{1}, alpha, sources, w_max);
+for ii=1:length(greedy_cache_node)
+   fprintf("for flow %d , cache in edgecloud %d \n", ii, greedy_cache_node(ii)); 
+end
+fprintf("total cost is %f\n",greedy_total_cost);
+    
