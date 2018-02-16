@@ -23,12 +23,13 @@ for ii = 1:numel(path)
                 continue;
         end
 
-        for jj = 1:numel(path{ii})
-                compare = numel(path{ii}{jj})-1;
+%         for jj = 1:numel(path{ii})
+%                 compare = numel(path{ii}{jj})-1;
+                compare = numel(path{ii})-1;
                 if factornum < compare
                         factornum = compare;
                 end
-        end
+%         end
 end
 
 link_delay = basic * factornum;       

@@ -1,4 +1,4 @@
-function [G,vertice_names,p] = GenerateGraph()
+function [G,vertice_names,edge_cloud,p] = GenerateGraph()
 %GenerateGraph Generate network topology based on the paper:
 %https://pdfs.semanticscholar.org/0a9a/85e48d468e7ea2a415fd661e31cec5d13ac7.pdf
 %   

@@ -13,7 +13,7 @@ end
 flow=[flow1];
 
 % the graph
-[G_full,vertice_names,p]=GenerateGraph();
+[G_full,vertice_names,edge_cloud,p]=GenerateGraph();
 N=length(vertice_names);
 for v=1:N
     eval([vertice_names{v},'=',num2str(v),';']);
@@ -21,17 +21,18 @@ end
 server=[data_server];
 relay=[relay1,relay2,relay3,relay4,relay5,relay6,relay7,relay8,relay9,...
     relay10,relay11,relay12,relay13,relay14,relay15];
-edge_cloud=[ec1,ec2,ec3,ec4,ec5,ec6,ec7,ec8,ec9,ec10,ec11,ec12,ec13,...
-    ec14,ec15];
 base_station=[bs1,bs2,bs3,bs4,bs5,bs6,bs7,bs8,bs9,bs10];
+access_router=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
+router=[router1,router2,router3,router4,router5,router6,router7,router8];
 
 % use subgraph instead of full graph for accelerating the BFS in
 % enumerating path
+% modify use full graph
 NF=length(flow);
 HARDCORDED_N=1;
 for v=1:HARDCORDED_N
-    G{v}=subgraph(G_full,[edge_cloud,base_station]);
-%       G{v}=G_full;
+%     G{v}=subgraph(G_full,[edge_cloud,base_station]);
+      G{v}=G_full;
 end
 
 %%%%%%%%%%%%%%%%%%%%% generated structure of graph%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,56 +42,68 @@ for v=1:HARDCORDED_N
     link{v}=G{v}.Edges;
 end
 
-% the set of paths
 sources=bs6;
 targets=[bs4,bs5,bs6,bs7,bs8];
-path=cell(length(sources),length(targets));
-for ii=1:length(sources)
-    for jj=1:length(targets)
-        path{ii,jj}=GetPathBetweenNode(G{1},sources(ii),targets(jj));
-    end
-end
+% the set of paths
+% path=cell(length(sources),length(targets));
+% for ii=1:length(targets)
+%     for jj=1:length(edge_cloud)
+%         path{ii,jj}=GetPathBetweenNode(G{1},targets(ii),edge_cloud(jj));
+%     end
+% end
 
 % path cost OR routing cost
-w=cell(1,HARDCORDED_N);
-for ii=1:HARDCORDED_N
-   w{ii}=GetRoutingCost(G{ii}, 'undirected',path);
+% w=cell(1,HARDCORDED_N);
+% for ii=1:HARDCORDED_N
+%    w{ii}=GetRoutingCost(G{ii}, 'undirected',path);
+% end
+
+%calculate the shortest path and path cost
+path=cell(length(edge_cloud), length(targets));
+w=path;
+for ii=1:length(edge_cloud)
+    for jj=1:length(targets)
+        [path{ii,jj},w{ii,jj}]=shortestpath(G{1},edge_cloud(ii),targets(jj));
+    end
 end
 
 % matrix for recording path reached edge cloud
 % get the number of path
-counter_path=0;
-for ii=1:numel(path)
-    if isempty(path{ii})
-        counter_path=counter_path+1;
-        continue;
-    end
-	counter_path=counter_path+numel(path{ii});
-end
+% counter_path=0;
+% for ii=1:numel(path)
+%     if isempty(path{ii})
+%         counter_path=counter_path+1;
+%         continue;
+%     end
+% 	counter_path=counter_path+numel(path{ii});
+% end
+counter_path=numel(path);
 
 Gpe=zeros(counter_path, numel(edge_cloud));
-index=1;
+% index=1;
 for ii=1:numel(path)
     if isempty(path{ii})
         % sources are bs, look for the ec link with this bs
-        sources_ec=neighbors(G{1},sources);
-        if find(edge_cloud==sources_ec)
-            Gpe(index,sources_ec)=1;
-            index=index+1;
-        end
+%         sources_ec=neighbors(G{1},sources);
+%         if find(edge_cloud==sources_ec)
+%             Gpe(index,sources_ec)=1;
+%             index=index+1;
+%         end
         continue;
     end
-    for jj=1:numel(path{ii})
-%         src=find(edgecloud==path{ii}{jj}(1));
-        %the last element in path sequence is bs, not sc
-        snk=find(edge_cloud==path{ii}{jj}(end-1)); 
-%         if ~isempty(src) && ~isempty(snk)
-        if ~isempty(snk)
-%             Gpe(index,src)=1;
-            Gpe(index,snk)=1;
-            index=index+1;
-        end
-    end
+%     for jj=1:numel(path{ii})
+% %         src=find(edgecloud==path{ii}{jj}(1));
+%         %the last element in path sequence is bs, not sc
+%         snk=find(edge_cloud==path{ii}{jj}(end-1)); 
+% %         if ~isempty(src) && ~isempty(snk)
+%         if ~isempty(snk)
+% %             Gpe(index,src)=1;
+%             Gpe(index,snk)=1;
+%             index=index+1;
+%         end
+%     end
+    src=find(edge_cloud==path{ii}(1));
+    Gpe(ii,src)=1;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,30 +263,33 @@ objfun1=alpha./(1-utilization)*x';
 
 % probability_x=probability_ec(edge_cloud(1):edge_cloud(end));
 % probability_x=repmat(probability_x,[NF,1]);
-probability_x = [];
-for ii = 1:NF
-   probability_x=[probability_x;...
-       GetFlowProbability( base_station, targets, edge_cloud, G)];
-end
+% probability_x = [];
+% for ii = 1:NF
+%    probability_x=[probability_x;...
+%        GetFlowProbability( base_station, targets, edge_cloud, G)];
+% end
+probability_x=GetFlowProbability(base_station,targets,access_router,G);
+probability_x=repmat(probability_x,NF);
 probability_Pi=repmat(probability_x,[1,1,counter_path]);
 
 % w_Pi=zeros(length(flow),counter_path);
 % for ii=1:numel(flow)
 w_Pi=zeros(HARDCORDED_N,counter_path);
-for ii=1:HARDCORDED_N
-        counter=1;
-        for jj=1:numel(w{ii})
-                if isempty(w{ii}{jj})
-                        w_Pi(ii,counter)=0;
-                        counter=counter+1;
-                        continue;
-                end
-                for kk=1:numel(w{ii}{jj})
-                        w_Pi(ii,counter)=w{ii}{jj}{kk};
-                        counter=counter+1;
-                end
-        end
-end
+% for ii=1:HARDCORDED_N
+%         counter=1;
+%         for jj=1:numel(w{ii})
+%                 if isempty(w{ii}{jj})
+%                         w_Pi(ii,counter)=0;
+%                         counter=counter+1;
+%                         continue;
+%                 end
+%                 for kk=1:numel(w{ii}{jj})
+%                         w_Pi(ii,counter)=w{ii}{jj}{kk};
+%                         counter=counter+1;
+%                 end
+%         end
+% end
+w_Pi=cell2mat(w(:));
 w_Pi=repmat(w_Pi,[1,1,length(edge_cloud)]);
 w_Pi=permute(w_Pi,[1,3,2]);
 

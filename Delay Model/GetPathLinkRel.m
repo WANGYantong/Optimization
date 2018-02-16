@@ -32,18 +32,21 @@ for ii = 1:length(path)
         path_index = path_index+1;
         continue;
     end
-    for jj = 1:length(path{ii})
-        for kk = 1:length(path{ii}{jj})-1
-            link = FindLink(path{ii}{jj}(kk:kk+1),arcs,direction);
+%     for jj = 1:length(path{ii})
+%         for kk = 1:length(path{ii}{jj})-1
+%             link = FindLink(path{ii}{jj}(kk:kk+1),arcs,direction);
+    for jj = 1:length(path{ii})-1
+        link=FindLink(path{ii}(jj:jj+1),arcs,direction);
             if link
                 beta(link,path_index) = 1;
             end
-        end
-        path_index = path_index+1;
     end
+        path_index = path_index+1;
 end
 
 end
+
+% end
 
 function link = FindLink(path,arcs,direction)
 
