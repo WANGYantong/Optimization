@@ -42,8 +42,8 @@ for v=1:HARDCORDED_N
     link{v}=G{v}.Edges;
 end
 
-sources=bs6;
-targets=[bs4,bs5,bs6,bs7,bs8];
+sources=AR4;
+targets=[AR2,AR3,AR4,AR5,AR6];
 % the set of paths
 % path=cell(length(sources),length(targets));
 % for ii=1:length(targets)
