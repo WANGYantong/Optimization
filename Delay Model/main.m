@@ -5,12 +5,13 @@ rng(1);
 tic;
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the network
-flowname={'flow1'}; %$$%
+flowname={'flow1','flow2'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1];
+flow=[flow1,flow2];
+NF=length(flow);
 
 % the graph
 [G_full,vertice_names,edge_cloud,p]=GenerateGraph();
@@ -25,119 +26,50 @@ base_station=[bs1,bs2,bs3,bs4,bs5,bs6,bs7,bs8,bs9,bs10];
 access_router=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
 router=[router1,router2,router3,router4,router5,router6,router7,router8];
 
-% use subgraph instead of full graph for accelerating the BFS in
-% enumerating path
-% modify use full graph
-NF=length(flow);
-HARDCORDED_N=1;
-for v=1:HARDCORDED_N
-%     G{v}=subgraph(G_full,[edge_cloud,base_station]);
-      G{v}=G_full;
-end
-
 %%%%%%%%%%%%%%%%%%%%% generated structure of graph%%%%%%%%%%%%%%%%%%%%%%%%%
-% the set of links
-% link{1}{1,'EndNodes'}{1}
-for v=1:HARDCORDED_N
-    link{v}=G{v}.Edges;
-end
+link=G_full.Edges;
 
 sources=AR4;
 targets=[AR2,AR3,AR4,AR5,AR6];
-% the set of paths
-% path=cell(length(sources),length(targets));
-% for ii=1:length(targets)
-%     for jj=1:length(edge_cloud)
-%         path{ii,jj}=GetPathBetweenNode(G{1},targets(ii),edge_cloud(jj));
-%     end
-% end
-
-% path cost OR routing cost
-% w=cell(1,HARDCORDED_N);
-% for ii=1:HARDCORDED_N
-%    w{ii}=GetRoutingCost(G{ii}, 'undirected',path);
-% end
 
 %calculate the shortest path and path cost
 path=cell(length(edge_cloud), length(targets));
 w=path;
 for ii=1:length(edge_cloud)
     for jj=1:length(targets)
-        [path{ii,jj},w{ii,jj}]=shortestpath(G{1},edge_cloud(ii),targets(jj));
+        [path{ii,jj},w{ii,jj}]=shortestpath(G_full,edge_cloud(ii),targets(jj));
     end
 end
 
-% matrix for recording path reached edge cloud
-% get the number of path
-% counter_path=0;
-% for ii=1:numel(path)
-%     if isempty(path{ii})
-%         counter_path=counter_path+1;
-%         continue;
-%     end
-% 	counter_path=counter_path+numel(path{ii});
-% end
 counter_path=numel(path);
-
-Gpe=zeros(counter_path, numel(edge_cloud));
-% index=1;
-for ii=1:numel(path)
-    if isempty(path{ii})
-        % sources are bs, look for the ec link with this bs
-%         sources_ec=neighbors(G{1},sources);
-%         if find(edge_cloud==sources_ec)
-%             Gpe(index,sources_ec)=1;
-%             index=index+1;
-%         end
-        continue;
-    end
-%     for jj=1:numel(path{ii})
-% %         src=find(edgecloud==path{ii}{jj}(1));
-%         %the last element in path sequence is bs, not sc
-%         snk=find(edge_cloud==path{ii}{jj}(end-1)); 
-% %         if ~isempty(src) && ~isempty(snk)
-%         if ~isempty(snk)
-% %             Gpe(index,src)=1;
-%             Gpe(index,snk)=1;
-%             index=index+1;
-%         end
-%     end
-    src=find(edge_cloud==path{ii}(1));
-    Gpe(ii,src)=1;
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % caching cost impact factor
-%alpha=randi(100);
 alpha=1;
 
-% utilization for each edge cloud
-% utilization(ec1)
-utilization=rand(size(edge_cloud));
-utilization=utilization*0.8;  % CHEAT!!!!!
-
 % the maximum number of edge cloud used to cache
-Nk=ones(size(flow));
-% Nk=zeros(size(flow));
+N_k=1;
 
 % size of cache items
 % 0~5000 Mbit
-Wsize=1000*randi(5,size(flow));
+W_k=1000*randi(5,size(flow));
+
+% original utilization
+utilization=rand(size(edge_cloud))*0.8;
 
 % remaining cache space for each edge cloud
-Fullspace=10000;
-Rspace=ones(size(edge_cloud))*Fullspace;
-Rspace=Rspace.*(1-utilization);
+W_e=10000;
+Zeta_e=ones(size(edge_cloud))*W_e;
+Zeta_e=Zeta_e.*(1-utilization);
 
 % remaining cache space in total
-Rtotal=50000;
+Zeta_t=50000;
 
 % link capacity
-Cl=1000;
+C_l=1000;
 
 % the rate of each flow
-% THINK OUT THE RELATIONSHIP WITH LAMBDA!
-Rk=randi([1,floor(10/NF)],size(flow))*100;
+R_k=randi([1,floor(10/NF)],size(flow))*100;
 
 % arriving rate
 % unit: Mbps
@@ -166,40 +98,81 @@ delta=100;
 % unit: Ms
 Tpr=10;
 
+% mobile user movement
+probability_ka=zeros(size(access_router));
+probability_ka(targets(end))=1;
+for ii=1:numel(targets)-1
+    probability_ka(targets(ii))=rand()/(length(targets)-1);
+    probability_ka(targets(end))=probability_ka(targets(end))...
+        -probability_ka(targets(ii));
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 x=optimvar('x',NF,length(edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
-y=optimvar('y',NF,counter_path,'Type','integer',...
-    'LowerBound',0,'UpperBound',1);
+eta=optimvar('eta',length(access_router),length(edge_cloud),'Type',...
+    'integer','LowerBound',0,'UpperBound',1);
 
-Pi=optimvar('Pi',NF,length(edge_cloud),counter_path,...
+pi=optimvar('pi',NF,length(access_router),length(edge_cloud),...
     'Type','integer','LowerBound',0,'UpperBound',1);
 
-omega=optimvar('omega',size(link{flow1},1),NF,counter_path,...
-    'LowerBound',0);
+t=optimvar('t',length(edge_cloud),'LowerBound',0);
 
-z=optimvar('z',size(link{flow1},1),'LowerBound',0);
+y=optimvar('y',NF,length(edge_cloud),'LowerBound',0);
+
+z=optimvar('z',size(link,1),'LowerBound',0);
+
+omega=optimvar('omega',size(link,1),NF,length(access_router),...
+    length(edge_cloud),'LowerBound',0);
 
 %%%%%%%%%%%%%%%%%%%%%%%% constraints %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% change the format of w
-% A=cellfun(@cell2mat, w{flow1},'UniformOutPut', false);
-% cell2mat(A(1,:));
-% OR
-% w{flow1}{find(sources==ec5),find(targets==ec4)};
-
 %ec_cache_num_constr
-% ec_cache_num_constr=sum(x,2)<=Nk';
-ec_cache_num_constr=sum(x,2)==Nk';
+ec_cache_num_constr1=sum(x,2)>=1;
+ec_cache_num_constr2=sum(x,2)<=N_k;
 
 %ec_cache_space_constr
-ec_cache_space_constr=Wsize*x<=Rspace;
+ec_cache_space_constr=W_k*x<=Zeta_e;
 
 %total_cache_space_constr
-total_cache_space_constr=sum(Wsize*x,2)<=Rtotal;
+total_cache_space_constr=sum(W_k*x,2)<=Zeta_t;
+
+%connect_ec_ar_constr
+connect_ec_ar_constr1=sum(eta,2)>=1;
+connect_ec_ar_constr2=sum(eta,2)<=N_k;
+
+%linear_denominator_constr
+linear_denominator_constr=Zeta_e.*t'-W_k*y==1;
+
+%sufficiently large number
+M=1000000;
+
+%y_define_constr
+t_y=repmat(t',[2,1]);
+y_define_constr1=y<=t_y;
+y_define_constr2=y<=M*x;
+y_define_constr3=y>=M*(x-1)+t_y;
+
+%pi_define_constr
+x_pi=repmat(x,[length(access_router),1,1]);
+x_pi=reshape(x_pi,NF,length(access_router),length(edge_cloud));
+pi_define_constr1=pi<=x_pi;
+
+[m,n]=size(eta);
+eta_pi=reshape(eta,1,m*n);
+eta_pi=repmat(eta_pi,[NF,1]);
+eta_pi=reshape(eta_pi,NF,length(access_router),length(edge_cloud));
+pi_define_constr2=pi<=eta_pi;
+
+pi_define_constr3=pi>=x_pi+eta_pi-1;
 
 %path_constr
-path_constr=sum(y,2)==ones(size(flow))';
+path_constr=sum(sum(pi,3),2)==1;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %ec_cross_path_constr
 % Gpe_Pi=repmat(Gpe',[1,1,length(flow)]);
