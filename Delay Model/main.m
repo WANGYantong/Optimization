@@ -33,11 +33,11 @@ sources=AR4;
 targets=[AR2,AR3,AR4,AR5,AR6];
 
 %calculate the shortest path and path cost
-path=cell(length(edge_cloud), length(targets));
+path=cell(length(access_router), length(edge_cloud));
 w=path;
-for ii=1:length(edge_cloud)
-    for jj=1:length(targets)
-        [path{ii,jj},w{ii,jj}]=shortestpath(G_full,edge_cloud(ii),targets(jj));
+for ii=1:length(access_router)
+    for jj=1:length(edge_cloud)
+        [path{ii,jj},w{ii,jj}]=shortestpath(G_full,access_router(ii),edge_cloud(jj));
     end
 end
 
@@ -169,27 +169,26 @@ pi_define_constr3=pi>=x_pi+eta_pi-1;
 %path_constr
 path_constr=sum(sum(pi,3),2)==1;
 
+%link_delay_constr
+R_komega=repmat(R_k,[size(link,1),1,length(access_router),length(edge_cloud)]);
+
+[m,n,l]=size(pi);
+pi_omega=reshape(pi,1,m*n*l);
+pi_omega=repmat(pi_omega,[size(link,1),1]);
+pi_omega=reshape(pi_omega,size(link,1),m,n,l);
+
+beta=GetPathLinkRel(G_full,"undirected",path,length(access_router),...
+    length(edge_cloud));
+[m,n,l]=size(beta);
+beta_omega=reshape(beta,1,m*n*l);
+beta_omega=repmat(beta_omega,[NF,1]);
+beta_omega=reshape(beta_omega,NF,m,n,l);
+beta_omega=permute(beta_omega,[2,1,3,4]);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%ec_cross_path_constr
-% Gpe_Pi=repmat(Gpe',[1,1,length(flow)]);
-Gpe_Pi=repmat(Gpe',[1,1,NF]);
-Gpe_Pi=permute(Gpe_Pi,[3,1,2]);
-ec_cross_path_constr=Pi<=Gpe_Pi;
-
-%Pi_define_constr
-x_Pi=repmat(x,[1,1,counter_path]);
-Pi_define_constr1=Pi<=x_Pi;
-
-y_Pi=repmat(y,[length(edge_cloud),1,1]);
-y_Pi=reshape(y_Pi,NF,length(edge_cloud),counter_path);
-Pi_define_constr2=Pi<=y_Pi;
-
-Pi_define_constr3=Pi>=x_Pi+y_Pi-1;
-
 %link_delay_constr
 Rk_omega=repmat(Rk,[size(link{flow1},1),1,counter_path]);
 Rk_y=repmat(Rk',[1,counter_path]);

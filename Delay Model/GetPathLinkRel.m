@@ -1,4 +1,4 @@
-function beta = GetPathLinkRel(graph,direction,path,counter_path)
+function beta = GetPathLinkRel(graph,direction,path,counter_a,counter_e)
 %GETPATHLINKREL generate a binary matrix beta to show the ownership
 %between paths and links
 %
@@ -10,43 +10,36 @@ function beta = GetPathLinkRel(graph,direction,path,counter_path)
 %
 %        path: the possible route of the graph, cell array
 %
-%        counter_path: the number of the paths
+%        counter_a: the number of access_router in graph
+%
+%        counter_e: the number of edge_cloud in graph
 %
 % 	Output variables:
 %
-%        beta: if beta(i,j)=1, it means the path(j) go across link(i),
-%              a (link, size) matrix.
+%        beta: if beta(i,j,k)=1, it means the path(j,k) go across link(i)
+%
 
-if nargin ~= 4
+if nargin ~= 5
     error('Error. \n Illegal input number')
 end
 
 [s,t] = findedge(graph);
 
-beta = zeros(length(s),counter_path);
+beta = zeros(length(s),counter_a,counter_e);
 arcs = [s,t]; 
 
-path_index = 1;
-for ii = 1:length(path)
-    if isempty(path{ii})
-        path_index = path_index+1;
-        continue;
-    end
-%     for jj = 1:length(path{ii})
-%         for kk = 1:length(path{ii}{jj})-1
-%             link = FindLink(path{ii}{jj}(kk:kk+1),arcs,direction);
-    for jj = 1:length(path{ii})-1
-        link=FindLink(path{ii}(jj:jj+1),arcs,direction);
+for ii = 1:counter_a
+    for jj = 1:counter_e
+        for kk = 1:length(path{ii,jj})-1
+            link=FindLink(path{ii,jj}(kk:kk+1),arcs,direction);
             if link
-                beta(link,path_index) = 1;
+                beta(link,ii,jj) = 1;
             end
+        end
     end
-        path_index = path_index+1;
 end
 
 end
-
-% end
 
 function link = FindLink(path,arcs,direction)
 
