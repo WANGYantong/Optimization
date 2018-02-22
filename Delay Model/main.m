@@ -106,6 +106,7 @@ for ii=1:numel(targets)-1
     probability_ka(targets(end))=probability_ka(targets(end))...
         -probability_ka(targets(ii));
 end
+probability_ka=repmat(probability_ka,[NF,1]);
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
 x=optimvar('x',NF,length(edge_cloud),'Type','integer',...
@@ -139,7 +140,7 @@ total_cache_space_constr=sum(W_k*x,2)<=Zeta_t;
 
 %connect_ec_ar_constr
 connect_ec_ar_constr1=sum(eta,2)>=1;
-connect_ec_ar_constr2=sum(eta,2)<=N_k;
+% connect_ec_ar_constr2=sum(eta,2)<=N_k;
 
 %linear_denominator_constr
 linear_denominator_constr=Zeta_e.*t'-W_k*y==1;
@@ -185,41 +186,18 @@ beta_omega=repmat(beta_omega,[NF,1]);
 beta_omega=reshape(beta_omega,NF,m,n,l);
 beta_omega=permute(beta_omega,[2,1,3,4]);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%link_delay_constr
-Rk_omega=repmat(Rk,[size(link{flow1},1),1,counter_path]);
-Rk_y=repmat(Rk',[1,counter_path]);
-beta=GetPathLinkRel(G{1},"undirected",path,counter_path);
-
-omega_link=squeeze(sum(Rk_omega.*omega,2));
-omega_link=omega_link*beta';
-omega_link_vec=optimexpr(length(omega_link));
-for ii=1:length(omega_link_vec)
-    omega_link_vec(ii)=omega_link(ii,ii);
-end
-
-link_delay_constr=(sum(Rk_y.*y,1)*beta')'+...
-    omega_link_vec-Cl*z<=0;
+link_delay_constr=sum(sum(sum(R_komega.*pi_omega.*beta_omega,4),3),2)+...
+    sum(sum(sum(R_komega.*omega.*beta_omega,2),3),4)-C_l*z<=0;
 
 %link_slack_constr
-delta_link=GetWorstLinkDelay(Cl,Rk,path);
+delta_link=GetWorstLinkDelay(C_l,R_k,path);
 link_slack_constr=sum(z)<=delta_link;
 
 %omega_define_constr
-z_omega=repmat(z,[1,NF,counter_path]);
+z_omega=repmat(z,[1,NF,length(access_router),length(edge_cloud)]);
 omega_define_constr1=omega<=z_omega;
-
-[m,n]=size(y);
-y_omega=reshape(y,1,m*n);
-y_omega=repmat(y_omega,[size(link{flow1},1),1]);
-y_omega=reshape(y_omega,size(link{flow1},1),NF,counter_path);
-M=1000000; %sufficiently large number
-omega_define_constr2=omega<=M*y_omega;
-
-omega_define_constr3=omega>=M*(y_omega-1)+z_omega;
+omega_define_constr2=omega<=M*pi_omega;
+omega_define_constr3=omega>=M*(pi_omega-1)+z_omega;
 
 %edge_delay_constr
 delta_edge=delta-Tpr-delta_link;
@@ -228,70 +206,45 @@ edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
 %%%%%%%%%%%%%% create problem and objective function %%%%%%%%%%%%%
 ProCache=optimproblem;
-%use E instead of S here
-%S=intersect(targets,edgecloud);
 
-objfun1=alpha./(1-utilization)*x';
+objfun1=sum(alpha*W_e*y,2);
 
-% probability_x=probability_ec(edge_cloud(1):edge_cloud(end));
-% probability_x=repmat(probability_x,[NF,1]);
-% probability_x = [];
-% for ii = 1:NF
-%    probability_x=[probability_x;...
-%        GetFlowProbability( base_station, targets, edge_cloud, G)];
-% end
-probability_x=GetFlowProbability(base_station,targets,access_router,G);
-probability_x=repmat(probability_x,NF);
-probability_Pi=repmat(probability_x,[1,1,counter_path]);
+probability_pi=repmat(probability_ka,[1,1,length(edge_cloud)]);
+w_pi=cell2mat(w);
+[m,n]=size(w_pi);
+w_pi=reshape(w_pi,1,m*n);
+w_pi=repmat(w_pi,[NF,1]);
+w_pi=reshape(w_pi,NF,m,n);
 
-% w_Pi=zeros(length(flow),counter_path);
-% for ii=1:numel(flow)
-w_Pi=zeros(HARDCORDED_N,counter_path);
-% for ii=1:HARDCORDED_N
-%         counter=1;
-%         for jj=1:numel(w{ii})
-%                 if isempty(w{ii}{jj})
-%                         w_Pi(ii,counter)=0;
-%                         counter=counter+1;
-%                         continue;
-%                 end
-%                 for kk=1:numel(w{ii}{jj})
-%                         w_Pi(ii,counter)=w{ii}{jj}{kk};
-%                         counter=counter+1;
-%                 end
-%         end
-% end
-w_Pi=cell2mat(w(:));
-w_Pi=repmat(w_Pi,[1,1,length(edge_cloud)]);
-w_Pi=permute(w_Pi,[1,3,2]);
+objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
 
-objfun2=sum(sum(probability_Pi.*w_Pi.*Pi,3),2)';
+punish=1200;
 
-% w_max=[];
-% for ii=1:length(flow)
-%     w_max=[w_max,shortestpath(G_full{1},sources,data_server)];
-% end
-w_max=1200;
-
-objfun3=(1-sum(probability_x.*x,2))'.*w_max;
-
+objfun3=(1-sum(sum(probability_pi.*pi,3),2))*punish;
 
 ProCache.Objective=sum(objfun1+objfun2+objfun3);
 
-ProCache.Constraints.ec_cache_num_constr=ec_cache_num_constr;
+ProCache.Constraints.ec_cache_num_constr1=ec_cache_num_constr1;
+ProCache.Constraints.ec_cache_num_constr2=ec_cache_num_constr2;
 ProCache.Constraints.ec_cache_space_constr=ec_cache_space_constr;
 ProCache.Constraints.total_cache_space_constr=total_cache_space_constr;
+ProCache.Constraints.connect_ec_ar_constr1=connect_ec_ar_constr1;
+% ProCache.Constraints.connect_ec_ar_constr2=connect_ec_ar_constr2;
+ProCache.Constraints.linear_denominator_constr=linear_denominator_constr;
+ProCache.Constraints.y_define_constr1=y_define_constr1;
+ProCache.Constraints.y_define_constr2=y_define_constr2;
+ProCache.Constraints.y_define_constr3=y_define_constr3;
+ProCache.Constraints.pi_define_constr1=pi_define_constr1;
+ProCache.Constraints.pi_define_constr2=pi_define_constr2;
+ProCache.Constraints.pi_define_constr3=pi_define_constr3;
 ProCache.Constraints.path_constr=path_constr;
-ProCache.Constraints.ec_cross_path_constr=ec_cross_path_constr;
-ProCache.Constraints.Pi_define_constr1=Pi_define_constr1;
-ProCache.Constraints.Pi_define_constr2=Pi_define_constr2;
-ProCache.Constraints.Pi_define_constr3=Pi_define_constr3;
 ProCache.Constraints.link_delay_constr=link_delay_constr;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
+
 
 %%%%%%%%%%%%%%%%%%% solve the problem %%%%%%%%%%%%%%%%%%%%
 % opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
@@ -324,36 +277,31 @@ else
     disp('the solution is not feasible')
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %draw the result of MILP
 [s1,t1]=find(round(sol.x));
-[s2,t2]=find(round(sol.y));
-
-path_array=cell(counter_path,1);
-index=1;
-for ii=1:numel(path)
-    if isempty(path{ii})
-        index=index+1;
-        continue;
-    end
-    for jj=1:numel(path{ii})
-        path_array{index}=path{ii}{jj};
-        index=index+1;
-    end
-end
+% [s2,t2]=find(round(sol.eta));
 
 hold on
 for ii=1:NF
     highlight(p,edge_cloud(t1(ii)),'nodecolor','c');
-    highlight(p,path_array{t2(ii)},'edgecolor','m');
+%     highlight(p,path(),'edgecolor','m');
 end
 hold off
 
 all_time=toc;
 display(all_time);
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%% greedy algorithm %%%%%%%%%%%%%%%%%%%%
-[greedy_cache_node, greedy_total_cost]=Greedy(probability_x,utilization,...
+[greedy_cache_node, greedy_total_cost]=Greedy(probability_ae,utilization,...
     Wsize, Rspace, Fullspace, Rtotal, G{1}, alpha, sources, w_max);
 for ii=1:length(greedy_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, greedy_cache_node(ii)); 
