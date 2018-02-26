@@ -245,7 +245,6 @@ ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
-
 %%%%%%%%%%%%%%%%%%% solve the problem %%%%%%%%%%%%%%%%%%%%
 % opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
 opts=optimoptions('intlinprog','Display','off');
@@ -277,11 +276,6 @@ else
     disp('the solution is not feasible')
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %draw the result of MILP
 [s1,t1]=find(round(sol.x));
 % [s2,t2]=find(round(sol.eta));
@@ -293,18 +287,17 @@ for ii=1:NF
 end
 hold off
 
-all_time=toc;
-display(all_time);
+MILP_time=toc;
+display(MILP_time);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%% greedy algorithm %%%%%%%%%%%%%%%%%%%%
-[greedy_cache_node, greedy_total_cost]=Greedy(probability_ae,utilization,...
-    Wsize, Rspace, Fullspace, Rtotal, G{1}, alpha, sources, w_max);
+tic;
+[greedy_cache_node, ar_list, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
+    W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
 for ii=1:length(greedy_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, greedy_cache_node(ii)); 
 end
 fprintf("total cost is %f\n",greedy_total_cost);
+Greedy_time=toc;
+display(Greedy_time);
     
