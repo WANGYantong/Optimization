@@ -291,8 +291,9 @@ MILP_time=toc;
 display(MILP_time);
 
 %%%%%%%%%%%%%%%%%%% greedy algorithm %%%%%%%%%%%%%%%%%%%%
+fprintf("\n greedy algorithm\n");
 tic;
-[greedy_cache_node, ar_list, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
+[greedy_cache_node, ~, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
 for ii=1:length(greedy_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, greedy_cache_node(ii)); 
@@ -300,4 +301,17 @@ end
 fprintf("total cost is %f\n",greedy_total_cost);
 Greedy_time=toc;
 display(Greedy_time);
-    
+
+%%%%%%%%%%%%%%%%%%%randomized greedy algorithm %%%%%%%%%%%%%%%%%%%%
+fprintf("\n randomized greedy algorithm\n");
+tic;
+[randomized_cache_node, access_list, randomized_total_cost]=...
+    RandomizedGreedy(flow,edge_cloud,access_router,...
+    W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,...
+    lambda,mu,ce,Tpr,delta,path,R_k,C_l);
+for ii=1:length(randomized_cache_node)
+   fprintf("for flow %d , cache in edgecloud %d \n", ii, randomized_cache_node(ii)); 
+end
+fprintf("total cost is %f\n",randomized_total_cost);
+randomized_time=toc;
+display(randomized_time);

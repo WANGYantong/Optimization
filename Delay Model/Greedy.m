@@ -64,7 +64,7 @@ for ii = 1:length(Flows)
         probability(flow,ar)=0;
         
         for kk = 1:length(list_ec)
-            if (Wsize(flow) < Rspace(list_ec(kk))) && (Rtotal > 0)
+            if (Wsize(flow) < Rspace(list_ec(kk))) && (Rtotal > Wsize(flow))
                 cache_node(flow) = list_ec(kk);
                 ar_list(flow) = ar;
                 Rspace(list_ec(kk)) = Rspace(list_ec(kk)) - Wsize(flow);
