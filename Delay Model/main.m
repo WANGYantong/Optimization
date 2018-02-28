@@ -5,12 +5,12 @@ rng(1);
 tic;
 %%%%%%%%%%%%%%%%%%%%%%% generate network topology %%%%%%%%%%%%%%%%%%%%%%%%%
 % the set of flows in the network
-flowname={'flow1','flow2'}; %$$%
+flowname={'flow1','flow2','flow3','flow4','flow5'}; %$$%
 N=length(flowname);
 for v=1:N
     eval([flowname{v},'=',num2str(v),';']);
 end
-flow=[flow1,flow2];
+flow=[flow1,flow2,flow3,flow4,flow5];
 NF=length(flow);
 
 % the graph
@@ -52,10 +52,10 @@ N_k=1;
 
 % size of cache items
 % 0~5000 Mbit
-W_k=1000*randi(5,size(flow));
+W_k=GenerateItemsSize(flow);
 
 % original utilization
-utilization=rand(size(edge_cloud))*0.8;
+utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
 W_e=10000;
@@ -99,13 +99,7 @@ delta=100;
 Tpr=10;
 
 % mobile user movement
-probability_ka=zeros(size(access_router));
-probability_ka(targets(end))=1;
-for ii=1:numel(targets)-1
-    probability_ka(targets(ii))=rand()/(length(targets)-1);
-    probability_ka(targets(end))=probability_ka(targets(end))...
-        -probability_ka(targets(ii));
-end
+probability_ka=GetFlowProbability(access_router,targets);
 probability_ka=repmat(probability_ka,[NF,1]);
 
 %%%%%%%%%%%%%%%%%%%%%%%% decision variable %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -149,7 +143,7 @@ linear_denominator_constr=Zeta_e.*t'-W_k*y==1;
 M=1000000;
 
 %y_define_constr
-t_y=repmat(t',[2,1]);
+t_y=repmat(t',[NF,1]);
 y_define_constr1=y<=t_y;
 y_define_constr2=y<=M*x;
 y_define_constr3=y>=M*(x-1)+t_y;
@@ -286,31 +280,46 @@ for ii=1:NF
 %     highlight(p,path(),'edgecolor','m');
 end
 hold off
+fprintf("\n %%%%MILP%%%%\n");
+
+for ii=1:NF
+   fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii))); 
+end
+ar_list=zeros(NF,1);
+[~,ar_buffer]=find(round(sol.pi(:,:,t1(1))),1);
+ar_list=ar_list+ar_buffer;
+   
+total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
+    Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud);
+fprintf("total cost is %f\n",total_cost);
+
+delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
+fprintf("delay time is %f\n",delay_time);
 
 MILP_time=toc;
 display(MILP_time);
 
 %%%%%%%%%%%%%%%%%%% greedy algorithm %%%%%%%%%%%%%%%%%%%%
-fprintf("\n greedy algorithm\n");
+fprintf("\n %%%%greedy algorithm%%%%\n");
 tic;
 [greedy_cache_node, ~, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
 for ii=1:length(greedy_cache_node)
-   fprintf("for flow %d , cache in edgecloud %d \n", ii, greedy_cache_node(ii)); 
+   fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii))); 
 end
 fprintf("total cost is %f\n",greedy_total_cost);
 Greedy_time=toc;
 display(Greedy_time);
 
 %%%%%%%%%%%%%%%%%%%randomized greedy algorithm %%%%%%%%%%%%%%%%%%%%
-fprintf("\n randomized greedy algorithm\n");
+fprintf("\n %%%%randomized greedy algorithm%%%%\n");
 tic;
 [randomized_cache_node, access_list, randomized_total_cost]=...
     RandomizedGreedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,...
     lambda,mu,ce,Tpr,delta,path,R_k,C_l);
 for ii=1:length(randomized_cache_node)
-   fprintf("for flow %d , cache in edgecloud %d \n", ii, randomized_cache_node(ii)); 
+   fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(randomized_cache_node(ii))); 
 end
 fprintf("total cost is %f\n",randomized_total_cost);
 randomized_time=toc;

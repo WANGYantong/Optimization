@@ -8,6 +8,9 @@ TIMES_HARDCODE = 100;
 [pre_allocate,ar_list,pre_cost] = Greedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);
 
+time_flag_ori = delay_detector(pre_allocate,path,R_k,C_l,lambda,...
+    mu,ce,Tpr,delta);
+
 cache_node = pre_allocate;
 access_list = ar_list;
 total_cost = pre_cost;
@@ -20,15 +23,18 @@ for ii = 1:TIMES_HARDCODE
     legal_flag = check_space(pre_allocate,Wsize,Rspace,Rtotal);
     
     if(legal_flag == 1)
-        pre_cost = cost_calculator(pre_allocate,ar_list,Wsize,probability,...
-            Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);
+        pre_cost = CostCalculator(pre_allocate,ar_list,Wsize,probability,...
+            Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,edge_clouds);
         time_flag_pre = delay_detector(pre_allocate,path,R_k,C_l,lambda,...
             mu,ce,Tpr,delta);
         
-        if(pre_cost <= total_cost && time_flag_pre ==1)
-            cache_node = pre_allocate;
-            access_list = ar_list;
-            total_cost = pre_cost;
+        if(time_flag_pre ==1)
+            if(time_flag_ori == 0) || ((time_flag_ori == 1) && (pre_cost < total_cost))
+                cache_node = pre_allocate;
+                access_list = ar_list;
+                total_cost = pre_cost;
+                time_flag_ori = time_flag_pre;
+            end
         end
     end
 end
@@ -50,30 +56,6 @@ for ii=1:NF
 end
 
 legal_flag=all(flow_flag);
-
-end
-
-%%further check
-function cost = cost_calculator(pre_allocate,ar_list,Wsize,probability,...
-    Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish)
-
-NF=length(pre_allocate);
-cost=0;
-
-for ii=1:NF
-    Rspace(pre_allocate(ii))=Rspace(pre_allocate(ii))-Wsize(ii);
-    Rtotal=Rtotal - Wsize(ii);
-    
-    cache_cost=alpha/(1-utilization(pre_allocate(ii)));
-    utilization(pre_allocate(ii))=Rspace(pre_allocate(ii))/Fullspace;
-    
-    [~,path_cost]=shortestpath(graph,ar_list(ii),pre_allocate(ii));
-    cache_hit_cost=probability(ii,ar_list(ii))*(path_cost+2);
-    
-    cache_miss_cost=(1-probability(ii,ar_list(ii)))*punish;
-    
-    cost=cost+cache_cost+cache_hit_cost+cache_miss_cost;
-end
 
 end
 

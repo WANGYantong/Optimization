@@ -45,16 +45,14 @@ if nargin ~= 12
     error('Error. \n Illegal input number')
 end
 
-cache_node=zeros(length(Flows),1);
-ar_list=zeros(length(Flows),1);
+NF=length(Flows);
+cache_node=zeros(NF,1);
+ar_list=zeros(NF,1);
 total_cost=0;
-cache_cost=0;
-cache_hit_cost=0;
-cache_miss_cost=0;
 
 probability_buff=probability;
 
-label_found=0;
+label_found=zeros(NF,1);
 
 for ii = 1:length(Flows)  
     for jj = 1:length(access_routers)
@@ -69,6 +67,7 @@ for ii = 1:length(Flows)
                 ar_list(flow) = ar;
                 Rspace(list_ec(kk)) = Rspace(list_ec(kk)) - Wsize(flow);
                 Rtotal = Rtotal - Wsize(flow);
+                utilization(cache_node(flow))=(Fullspace-Rspace(cache_node(flow)))/Fullspace;
                 label_found=1;
                 break
             end
@@ -79,10 +78,10 @@ for ii = 1:length(Flows)
     end
     if (label_found==1)
         cache_cost=alpha/(1-utilization(cache_node(flow)));
-        utilization(cache_node(flow))=Rspace(cache_node(flow))/Fullspace;
         
-        [~,path_cost]=shortestpath(graph,ar,cache_node(flow));
-        cache_hit_cost=probability_buff(flow,ar)*(path_cost+2); %2 is the cost from ec to bs...
+        
+        [~,path_cost]=shortestpath(graph,ar,edge_clouds(cache_node(flow)));
+        cache_hit_cost=probability_buff(flow,ar)*path_cost; 
         
         cache_miss_cost=(1-probability_buff(flow,ar))*punish;
         
