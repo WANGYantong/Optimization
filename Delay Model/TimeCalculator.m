@@ -19,12 +19,23 @@ end
 
 delay_edge=zeros(size(edge_clouds));
 for ii=1:length(edge_clouds)
-    delay_edge(ii)=MMC_Calculator(lambda_e(ii),mu(ii),ce(ii));
+    if(lambda_e(ii)>=ce(ii)*mu(ii))
+        delay_time=inf;
+        return
+    else        
+        delay_edge(ii)=MMC_Calculator(lambda_e(ii),mu(ii),ce(ii));
+    end
 end
 
-%edge_choose=
+delay_edge_max=max(delay_edge);
+% delay_edge_max=0;
+% for ii=1:length(edge_clouds)
+%     if(edge_list(ii)>0)
+%         delay_edge_max=delay_edge_max+delay_edge(ii);
+%     end
+% end
 
-delay_time = delay_edge+delay_link+Tpr;
+delay_time =delay_edge_max+delay_link+Tpr;
 
 end
 

@@ -65,10 +65,12 @@ delay_flag = 1;
 
 delay_link = GetWorstLinkDelay(C_l, R_k, path);
 
-delay_edge = delta-Tpr-delay_link;
+NF=length(pre_allocate);
+
+delay_edge = (delta-Tpr-delay_link);
 
 lammax = GetMaxLambda(mu,ce,delay_edge);
-NF=length(pre_allocate);
+
 for ii=1:NF
     lammax(pre_allocate(ii))=lammax(pre_allocate(ii))-lambda(ii,pre_allocate(ii));
     if(lammax(pre_allocate(ii))<0)

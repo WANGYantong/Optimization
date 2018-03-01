@@ -68,31 +68,14 @@ Zeta_t=50000;
 % link capacity
 C_l=1000;
 
-% the rate of each flow
-R_k=randi([1,floor(10/NF)],size(flow))*100;
-
-% arriving rate
-% unit: Mbps
-lambda=poissrnd(200,NF,length(edge_cloud));
-
-% number of servers
-ce=zeros(size(edge_cloud));
-for ii=1:length(ce)
-    if rand()>0.5
-        ce(ii)=2;
-    else
-        ce(ii)=3;
-    end
-end
-
-% each server service rate
-% assuming service rates for different flows are same
-% unit: Mbps
-mu=poissrnd(120,1,length(edge_cloud));
+flow_stable=[1,2,3,4,5];
+[R_k,lambda,ce,mu]=GenerateDelayParameter(flow_stable,edge_cloud);
+R_k=R_k(1:NF);
+lambda=lambda(1:NF,:);
 
 % delay tolerance
 % unit: Ms
-delta=100;
+delta=50;
 
 % propagation delay
 % unit: Ms
@@ -194,7 +177,7 @@ omega_define_constr2=omega<=M*pi_omega;
 omega_define_constr3=omega>=M*(pi_omega-1)+z_omega;
 
 %edge_delay_constr
-delta_edge=delta-Tpr-delta_link;
+delta_edge=(delta-Tpr-delta_link);
 lammax=GetMaxLambda(mu,ce,delta_edge);
 edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
@@ -282,6 +265,9 @@ end
 hold off
 fprintf("\n %%%%MILP%%%%\n");
 
+[BB,II]=sort(s1);
+t1=t1(II);
+
 for ii=1:NF
    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii))); 
 end
@@ -308,6 +294,10 @@ for ii=1:length(greedy_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii))); 
 end
 fprintf("total cost is %f\n",greedy_total_cost);
+
+delay_time = TimeCalculator(greedy_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
+fprintf("delay time is %f\n",delay_time);
+
 Greedy_time=toc;
 display(Greedy_time);
 
@@ -322,5 +312,9 @@ for ii=1:length(randomized_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(randomized_cache_node(ii))); 
 end
 fprintf("total cost is %f\n",randomized_total_cost);
+delay_time = TimeCalculator(randomized_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
+fprintf("delay time is %f\n",delay_time);
 randomized_time=toc;
 display(randomized_time);
+
+fprintf("\ndelay tolerance is %f\n",delta);
