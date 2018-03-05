@@ -54,9 +54,9 @@ probability_buff=probability;
 
 label_found=zeros(NF,1);
 
-for ii = 1:length(Flows)  
+for ii = 1:NF
     for jj = 1:length(access_routers)
-        [flow,ar,list_ec]=find_ec_for_flow(probability,access_routers,graph,...
+        [flow,ar,list_ec]=FindEcForFlow(probability,access_routers,graph,...
             edge_clouds);
         
         probability(flow,ar)=0;
@@ -79,7 +79,6 @@ for ii = 1:length(Flows)
     if (label_found==1)
         cache_cost=alpha/(1-utilization(cache_node(flow)));
         
-        
         [~,path_cost]=shortestpath(graph,ar,edge_clouds(cache_node(flow)));
         cache_hit_cost=probability_buff(flow,ar)*path_cost; 
         
@@ -94,26 +93,3 @@ end
 
 end
 
-function [flow,ar,list_ec] = find_ec_for_flow(probability,access_routers,...
-    graph,edge_clouds)
-
-[B,I]=sort(probability,2,'descend');
-[~,flow]=max(B(:,1));
-ar = access_routers(I(flow,1));
-
-list_ec=Construct_EC_List(graph,edge_clouds,ar);
-
-end
-
-function list_ec = Construct_EC_List(graph,edge_clouds,ar)
-
-list_cost=zeros(1,length(edge_clouds));
-
-for ii = 1:length(edge_clouds)
-    [~,path_cost]=shortestpath(graph,ar,edge_clouds(ii));
-    list_cost(ii)=path_cost;
-end
-
-[~,list_ec]=sort(list_cost,2);
-
-end
