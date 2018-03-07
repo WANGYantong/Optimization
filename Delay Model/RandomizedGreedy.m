@@ -3,7 +3,7 @@ function [cache_node,access_list,total_cost] = RandomizedGreedy(Flows,edge_cloud
     lambda,mu,ce,Tpr,delta,path,R_k,C_l)
 %RANDOMGREEDY
 
-TIMES_HARDCODE = 100;
+TIMES_HARDCODE = 1000;
 
 [pre_allocate,ar_list,pre_cost] = Greedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);
@@ -67,7 +67,7 @@ delay_link = GetWorstLinkDelay(C_l, R_k, path);
 
 NF=length(pre_allocate);
 
-delay_edge = (delta-Tpr-delay_link);
+delay_edge = (delta-Tpr-delay_link)/length(ce);
 
 lammax = GetMaxLambda(mu,ce,delay_edge);
 

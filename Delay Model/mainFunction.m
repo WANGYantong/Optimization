@@ -66,14 +66,14 @@ Zeta_t=50000;
 % link capacity
 C_l=1000;
 
-flow_stable=[1,2,3,4,5];
+flow_stable=[1,2,3,4,5,6,7,8,9];
 [R_k,lambda,ce,mu]=GenerateDelayParameter(flow_stable,edge_cloud);
 R_k=R_k(1:NF);
 lambda=lambda(1:NF,:);
 
 % delay tolerance
 % unit: Ms
-delta=50;
+delta=60;
 
 % propagation delay
 % unit: Ms
@@ -124,13 +124,14 @@ connect_ec_ar_constr1=sum(eta,2)>=1;
 linear_denominator_constr=Zeta_e.*t'-W_k*y==1;
 
 %sufficiently large number
-M=1000000;
+M1=1;
+M2=100000;
 
 %y_define_constr
 t_y=repmat(t',[NF,1]);
 y_define_constr1=y<=t_y;
-y_define_constr2=y<=M*x;
-y_define_constr3=y>=M*(x-1)+t_y;
+y_define_constr2=y<=M1*x;
+y_define_constr3=y>=M1*(x-1)+t_y;
 
 %pi_define_constr
 x_pi=repmat(x,[length(access_router),1,1]);
@@ -174,11 +175,14 @@ link_slack_constr=sum(z)<=delta_link;
 %omega_define_constr
 z_omega=repmat(z,[1,NF,length(access_router),length(edge_cloud)]);
 omega_define_constr1=omega<=z_omega;
-omega_define_constr2=omega<=M*pi_omega;
-omega_define_constr3=omega>=M*(pi_omega-1)+z_omega;
+omega_define_constr2=omega<=M2*pi_omega;
+omega_define_constr3=omega>=M2*(pi_omega-1)+z_omega;
+%%%%%%%%%%%add a now one
+% omega_define_constr4=omega<=beta_omega.*z_omega;
 
 %edge_delay_constr
-delta_edge=(delta-Tpr-delta_link);
+delta_edge=(delta-Tpr-delta_link)/length(edge_cloud);
+% delta_edge=(delta-Tpr-delta_link);
 lammax=GetMaxLambda(mu,ce,delta_edge);
 edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
@@ -197,7 +201,7 @@ w_pi=reshape(w_pi,NF,m,n);
 
 objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
 
-punish=1000;
+punish=1200;
 
 objfun3=(1-sum(sum(probability_pi.*pi,3),2))*punish;
 
@@ -222,6 +226,8 @@ ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
+%%%%%%%%add a new one
+% ProCache.Constraints.omega_define_constr4=omega_define_constr4;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
 %%%%%%%%%%%%%%%%%%% solve the problem %%%%%%%%%%%%%%%%%%%%
