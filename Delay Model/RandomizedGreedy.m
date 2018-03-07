@@ -3,7 +3,7 @@ function [cache_node,access_list,total_cost] = RandomizedGreedy(Flows,edge_cloud
     lambda,mu,ce,Tpr,delta,path,R_k,C_l)
 %RANDOMGREEDY
 
-TIMES_HARDCODE = 1000;
+TIMES_HARDCODE = 500;
 
 [pre_allocate,ar_list,pre_cost] = Greedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);

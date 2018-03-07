@@ -171,6 +171,7 @@ link_delay_constr=sum(sum(sum(R_komega.*pi_omega.*beta_omega,4),3),2)+...
 %link_slack_constr
 delta_link=GetWorstLinkDelay(C_l,R_k,path);
 link_slack_constr=sum(z)<=delta_link;
+% link_slack_constr=sum(z)==delta_link;
 
 %omega_define_constr
 z_omega=repmat(z,[1,NF,length(access_router),length(edge_cloud)]);
@@ -286,7 +287,7 @@ ar_list=I(:,1);
    
 total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
     Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud);
-fprintf("total cost is %f\n",total_cost);
+fprintf("total cost is %f\n the fval cost is %f\n",total_cost,fval);
 
 delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
 fprintf("delay time is %f\n",delay_time);
