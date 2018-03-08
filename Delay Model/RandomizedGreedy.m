@@ -3,7 +3,7 @@ function [cache_node,access_list,total_cost] = RandomizedGreedy(Flows,edge_cloud
     lambda,mu,ce,Tpr,delta,path,R_k,C_l)
 %RANDOMGREEDY
 
-TIMES_HARDCODE = 500;
+TIMES_HARDCODE = 1000;
 
 [pre_allocate,ar_list,pre_cost] = Greedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);
@@ -14,6 +14,10 @@ time_flag_ori = delay_detector(pre_allocate,path,R_k,C_l,lambda,...
 cache_node = pre_allocate;
 access_list = ar_list;
 total_cost = pre_cost;
+
+if(time_flag_ori==1)
+    return
+end
 
 for ii = 1:TIMES_HARDCODE
     flow = randi(length(Flows));
@@ -33,7 +37,8 @@ for ii = 1:TIMES_HARDCODE
                 cache_node = pre_allocate;
                 access_list = ar_list;
                 total_cost = pre_cost;
-                time_flag_ori = time_flag_pre;
+%                 time_flag_ori = time_flag_pre;
+                return
             end
         end
     end

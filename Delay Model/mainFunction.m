@@ -56,7 +56,7 @@ W_k=GenerateItemsSize(flow);
 utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-W_e=10000;
+W_e=5000;
 Zeta_e=ones(size(edge_cloud))*W_e;
 Zeta_e=Zeta_e.*(1-utilization);
 
@@ -178,7 +178,7 @@ z_omega=repmat(z,[1,NF,length(access_router),length(edge_cloud)]);
 omega_define_constr1=omega<=z_omega;
 omega_define_constr2=omega<=M2*pi_omega;
 omega_define_constr3=omega>=M2*(pi_omega-1)+z_omega;
-%%%%%%%%%%%add a now one
+%%%%%%%%%%add a now one
 % omega_define_constr4=omega<=beta_omega.*z_omega;
 
 %edge_delay_constr
@@ -188,7 +188,7 @@ lammax=GetMaxLambda(mu,ce,delta_edge);
 edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
 %%%%%%%%%%%%%% create problem and objective function %%%%%%%%%%%%%
-tic;
+
 ProCache=optimproblem;
 
 objfun1=sum(alpha*W_e*y,2);
@@ -227,14 +227,16 @@ ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
-%%%%%%%%add a new one
+%%%%%%%add a new one
 % ProCache.Constraints.omega_define_constr4=omega_define_constr4;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
 %%%%%%%%%%%%%%%%%%% solve the problem %%%%%%%%%%%%%%%%%%%%
 % opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
 opts=optimoptions('intlinprog','Display','off');
+tic;
 [sol,fval,exitflag,output]=solve(ProCache,opts);
+MILP_time=toc;
 
 if isempty(sol)
     disp('The solver did not return a solution.')
@@ -292,7 +294,7 @@ fprintf("total cost is %f\n the fval cost is %f\n",total_cost,fval);
 delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
 fprintf("delay time is %f\n",delay_time);
 
-MILP_time=toc;
+
 display(MILP_time);
 
 %%%%%%%%%%%%%%%%%%% nominal algorithm %%%%%%%%%%%%%%%%%%%%
@@ -300,6 +302,7 @@ fprintf("\n %%%%nominal algorithm%%%%\n");
 tic;
 [nominal_cache_node, ~, nominal_total_cost]=Nominal(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
+Nominal_time=toc;
 for ii=1:length(nominal_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(nominal_cache_node(ii))); 
 end
@@ -308,7 +311,6 @@ fprintf("total cost is %f\n",nominal_total_cost);
 delay_time = TimeCalculator(nominal_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
 fprintf("delay time is %f\n",delay_time);
 
-Nominal_time=toc;
 display(Nominal_time);
 
 %%%%%%%%%%%%%%%%%%% greedy algorithm %%%%%%%%%%%%%%%%%%%%
@@ -316,6 +318,7 @@ fprintf("\n %%%%greedy algorithm%%%%\n");
 tic;
 [greedy_cache_node, ~, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
+Greedy_time=toc;
 for ii=1:length(greedy_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii))); 
 end
@@ -324,7 +327,6 @@ fprintf("total cost is %f\n",greedy_total_cost);
 delay_time = TimeCalculator(greedy_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
 fprintf("delay time is %f\n",delay_time);
 
-Greedy_time=toc;
 display(Greedy_time);
 
 %%%%%%%%%%%%%%%%%%%randomized greedy algorithm %%%%%%%%%%%%%%%%%%%%
@@ -334,13 +336,13 @@ tic;
     RandomizedGreedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,...
     lambda,mu,ce,Tpr,delta,path,R_k,C_l);
+randomized_time=toc;
 for ii=1:length(randomized_cache_node)
    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(randomized_cache_node(ii))); 
 end
 fprintf("total cost is %f\n",randomized_total_cost);
 delay_time = TimeCalculator(randomized_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud);
 fprintf("delay time is %f\n",delay_time);
-randomized_time=toc;
 display(randomized_time);
 
 fprintf("\ndelay tolerance is %f\n",delta);
