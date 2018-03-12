@@ -1,15 +1,15 @@
-function [R_k,lambda,ce,mu] = GenerateDelayParameter(flow,edge_cloud)
+function [R_k,lambda,ce,mu] = GenerateDelayParameter(flow_stable,edge_cloud,NF)
 
 rng(1);
 
-NF=length(flow);
+NF_stable=length(flow_stable);
 
 % the rate of each flow
-R_k=randi([1,floor(10/NF)],size(flow))*100;
+R_k=randi([1,floor(10/NF_stable)],size(flow_stable))*100;
 
 % arriving rate
 % unit: Mbps
-lambda=poissrnd(200,NF,length(edge_cloud));
+lambda=poissrnd(200,NF_stable,length(edge_cloud));
 
 % number of servers
 ce=zeros(size(edge_cloud));
@@ -24,6 +24,6 @@ end
 % each server service rate
 % assuming service rates for different flows are same
 % unit: Mbps
-mu=poissrnd(120,1,length(edge_cloud));
+mu=poissrnd(120*NF,1,length(edge_cloud));
 end
 

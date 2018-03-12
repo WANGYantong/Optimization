@@ -1,6 +1,6 @@
 function [cache_node,access_list,total_cost] = RandomizedGreedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,...
-    lambda,mu,ce,Tpr,delta,path,R_k,C_l)
+    lambda,mu,ce,Tpr,delta,path,R_k,C_l,server)
 %RANDOMGREEDY
 
 TIMES_HARDCODE = 1000;
@@ -28,7 +28,7 @@ for ii = 1:TIMES_HARDCODE
     
     if(legal_flag == 1)
         pre_cost = CostCalculator(pre_allocate,ar_list,Wsize,probability,...
-            Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,edge_clouds);
+            Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,edge_clouds,server);
         time_flag_pre = delay_detector(pre_allocate,path,R_k,C_l,lambda,...
             mu,ce,Tpr,delta);
         

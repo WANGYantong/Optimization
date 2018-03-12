@@ -1,21 +1,20 @@
 function cost = CostCalculator(pre_allocate,ar_list,Wsize,probability,...
-    Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,edge_clouds)
+    Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,edge_clouds,server)
 
 NF=length(pre_allocate);
 cost=0;
 
 label=zeros(size(pre_allocate));
 
-for ii=1:NF
-    Rspace(pre_allocate(ii))=Rspace(pre_allocate(ii))-Wsize(ii);
-    Rtotal=Rtotal-Wsize(ii);
-    
-    if((Rspace(pre_allocate(ii))<0)||(Rtotal<0))
-        label(ii)=1;
-        Rspace(pre_allocate(ii))=Rspace(pre_allocate(ii))+Wsize(ii);
-        Rtotal=Rtotal+Wsize(ii);
+for ii=1:NF    
+    if pre_allocate(ii) == server
+       label(ii)=1;
+       continue
     end
     
+    Rspace(pre_allocate(ii))=Rspace(pre_allocate(ii))-Wsize(ii);
+    Rtotal=Rtotal-Wsize(ii);
+      
     utilization(pre_allocate(ii))=(Fullspace-Rspace(pre_allocate(ii)))/Fullspace;
 end
 
