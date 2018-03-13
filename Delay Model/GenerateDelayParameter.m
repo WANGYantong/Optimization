@@ -5,7 +5,7 @@ rng(1);
 NF_stable=length(flow_stable);
 
 % the rate of each flow
-R_k=randi([1,floor(10/NF_stable)],size(flow_stable))*100;
+R_k=randi([1,2],size(flow_stable))*100;
 
 % arriving rate
 % unit: Mbps
@@ -24,6 +24,6 @@ end
 % each server service rate
 % assuming service rates for different flows are same
 % unit: Mbps
-mu=poissrnd(120,1,length(edge_cloud));
+mu=poissrnd(120*ceil(NF/10),1,length(edge_cloud));
 end
 

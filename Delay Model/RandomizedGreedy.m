@@ -3,7 +3,7 @@ function [cache_node,access_list,total_cost] = RandomizedGreedy(Flows,edge_cloud
     lambda,mu,ce,Tpr,delta,path,R_k,C_l,server)
 %RANDOMGREEDY
 
-TIMES_HARDCODE = 1000;
+TIMES_HARDCODE = 10000;
 
 [pre_allocate,ar_list,pre_cost] = Greedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);
@@ -16,10 +16,12 @@ access_list = ar_list;
 total_cost = pre_cost;
 
 if(time_flag_ori==1)
-    return
+    TIMES_HARDCODE = 100;
+%     return
 end
 
 for ii = 1:TIMES_HARDCODE
+% while(1)
     flow = randi(length(Flows));
     pos = randi(length(edge_clouds));
     pre_allocate(flow) = pos;
