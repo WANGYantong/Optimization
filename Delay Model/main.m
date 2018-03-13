@@ -3,7 +3,7 @@ clear
 clc
 
 %%
-flow=1:1:10;
+flow=1:1:9;
 NF_TOTAL=length(flow);
 
 %%

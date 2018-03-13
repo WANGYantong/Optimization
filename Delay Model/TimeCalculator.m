@@ -22,9 +22,8 @@ end
 delay_edge=zeros(size(edge_clouds));
 for ii=1:length(edge_clouds)
     if(lambda_e(ii)>=ce(ii)*mu(ii))
-        delay_time=inf;
-        return
-    else        
+        delay_edge(ii)=10;
+    else
         delay_edge(ii)=MMC_Calculator(lambda_e(ii),mu(ii),ce(ii));
     end
 end

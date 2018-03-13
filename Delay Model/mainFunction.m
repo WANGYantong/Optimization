@@ -43,18 +43,19 @@ N_k=1;
 
 % size of cache items
 % 0~5000 Mbit
-W_k=GenerateItemsSize(flow);
+W_k=GenerateItemsSize(NF_TOTAL)';
+W_k=W_k(1:NF);
 
 % original utilization
 utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-W_e=5000*NF;
+W_e=5000+1000*NF;
 Zeta_e=ones(size(edge_cloud))*W_e;
 Zeta_e=Zeta_e.*(1-utilization);
 
 % remaining cache space in total
-Zeta_t=W_e;
+Zeta_t=W_e*10;
 
 % Delay paremeter
 flow_stable=1:1:NF_TOTAL;
