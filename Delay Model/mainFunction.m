@@ -69,7 +69,7 @@ C_l=sum(R_k)+100;
 
 % delay tolerance
 % unit: Ms
-delta=20+10*NF;
+delta=30+5*NF;
 
 % propagation delay
 % unit: Ms
@@ -175,8 +175,13 @@ omega_define_constr2=omega<=M2*pi_omega;
 omega_define_constr3=omega>=M2*(pi_omega-1)+z_omega;
 
 %edge_delay_constr
-delta_edge=(delta-Tpr-delta_link)/length(edge_cloud);
-% delta_edge=(delta-Tpr-delta_link);
+% delta_edge=(delta-Tpr-delta_link)/length(edge_cloud);
+delta_edge=delta-Tpr-delta_link;
+
+if delta_edge <= 0
+    return
+end
+
 lammax=GetMaxLambda(mu,ce,delta_edge);
 edge_delay_constr=sum(lambda.*x,1)<=lammax;
 
