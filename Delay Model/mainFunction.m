@@ -50,7 +50,7 @@ W_k=W_k(1:NF);
 utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-W_e=5000+1000*floor(NF/5);
+W_e=5000+1500*floor(NF/5);
 Zeta_e=ones(size(edge_cloud))*W_e;
 Zeta_e=Zeta_e.*(1-utilization);
 
@@ -69,7 +69,7 @@ C_l=sum(R_k)+100;
 
 % delay tolerance
 % unit: Ms
-delta=30+5*NF;
+delta=20+5*NF;
 
 % propagation delay
 % unit: Ms
@@ -81,6 +81,30 @@ for ii=1:NF
     probability_ka(ii,:)=GetFlowProbability(ii,access_router,targets);
 end
 
+% define eta is the connect matrix which combine the access router and its 
+% 2-hop neighbor edge clouds
+eta_2hop=zeros(length(access_router),length(edge_cloud));
+for ii=1:length(access_router)
+    ec_index=find(edge_cloud==access_router(ii));
+    if ec_index > 0
+        eta_2hop(ii,ec_index)=1;
+    end
+    neighbor_1hop=neighbors(G_full,access_router(ii));
+    for jj=1:length(neighbor_1hop)
+        ec_index=find(edge_cloud==neighbor_1hop(jj));
+        if ec_index > 0
+            eta_2hop(ii,ec_index)=1;
+        end
+        neighbor_2hop=neighbors(G_full,neighbor_1hop(jj));
+        for kk=1:length(neighbor_2hop)
+            ec_index=find(edge_cloud==neighbor_2hop(kk));
+            if ec_index > 0
+                eta_2hop(ii,ec_index)=1;
+            end
+        end
+    end
+end
+% eta=eta_2hop;
 %% decision variable
 x=optimvar('x',NF,length(edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
@@ -113,7 +137,7 @@ total_cache_space_constr=sum(W_k*x,2)<=Zeta_t;
 
 %connect_ec_ar_constr
 connect_ec_ar_constr1=sum(eta,2)>=1;
-% connect_ec_ar_constr2=sum(eta,2)<=N_k;
+connect_ec_ar_constr2=eta<=eta_2hop;
 
 %linear_denominator_constr
 linear_denominator_constr=Zeta_e.*t'-W_k*y==1;
@@ -140,6 +164,7 @@ eta_pi=reshape(eta_pi,NF,length(access_router),length(edge_cloud));
 pi_define_constr2=pi<=eta_pi;
 
 pi_define_constr3=pi>=x_pi+eta_pi-1;
+% pi_define_constr=pi<=x_pi.*eta_pi;
 
 %path_constr
 path_constr=sum(sum(pi,3),2)==1;
@@ -211,7 +236,7 @@ ProCache.Constraints.ec_cache_num_constr2=ec_cache_num_constr2;
 ProCache.Constraints.ec_cache_space_constr=ec_cache_space_constr;
 ProCache.Constraints.total_cache_space_constr=total_cache_space_constr;
 ProCache.Constraints.connect_ec_ar_constr1=connect_ec_ar_constr1;
-% ProCache.Constraints.connect_ec_ar_constr2=connect_ec_ar_constr2;
+ProCache.Constraints.connect_ec_ar_constr2=connect_ec_ar_constr2;
 ProCache.Constraints.linear_denominator_constr=linear_denominator_constr;
 ProCache.Constraints.y_define_constr1=y_define_constr1;
 ProCache.Constraints.y_define_constr2=y_define_constr2;
@@ -219,6 +244,7 @@ ProCache.Constraints.y_define_constr3=y_define_constr3;
 ProCache.Constraints.pi_define_constr1=pi_define_constr1;
 ProCache.Constraints.pi_define_constr2=pi_define_constr2;
 ProCache.Constraints.pi_define_constr3=pi_define_constr3;
+% ProCache.Constraints.pi_define_constr=pi_define_constr;
 ProCache.Constraints.path_constr=path_constr;
 ProCache.Constraints.link_delay_constr=link_delay_constr;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
@@ -231,7 +257,7 @@ ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 % opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
 opts=optimoptions('intlinprog','Display','off');
 tic;
-[sol,fval,exitflag,output]=solve(ProCache,opts);
+[sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
 MILP_time=toc;
 
 if isempty(sol)
