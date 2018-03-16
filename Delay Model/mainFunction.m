@@ -225,7 +225,7 @@ w_pi=reshape(w_pi,NF,m,n);
 
 objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
 
-punish=1200;
+punish=12000;
 
 objfun3=(1-sum(sum(probability_pi.*pi,3),2))*punish;
 

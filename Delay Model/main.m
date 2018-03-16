@@ -3,12 +3,14 @@ clear
 clc
 
 %%
-flow=1:1:10;
-NF_TOTAL=length(flow)*2;
+flow=1:1:11;
+NF=length(flow);
+% NF_TOTAL=length(flow);
+NF_TOTAL=20;
 result=zeros(NF_TOTAL,18);
 
 %%
-for ii=1:length(flow)
+for ii=1:NF
     fprintf("\n %%%%%%%%%%%%for %d flow%%%%%%%%%%%%\n",ii);
     result(ii,1)=ii;
     buff=mainFunction(flow(1:ii),NF_TOTAL,result);
@@ -16,31 +18,31 @@ for ii=1:length(flow)
 end
 
 %%
-cost_MILP=result(1:1:10,3);
-cost_Nominal=result(1:1:10,4);
-cost_Greedy=result(1:1:10,5);
-cost_Random=result(1:1:10,6);
-cost_Nocache=result(1:1:10,7);
+cost_MILP=result(1:1:NF,3);
+cost_Nominal=result(1:1:NF,4);
+cost_Greedy=result(1:1:NF,5);
+cost_Random=result(1:1:NF,6);
+cost_Nocache=result(1:1:NF,7);
 figure(1);
-plot(flow,cost_MILP,'-o',flow,cost_Nominal,'-+',...
-    flow,cost_Greedy,'-*',flow,cost_Random,'-d',flow,cost_Nocache,'-x');
+plot(flow,cost_MILP,'-.o',flow,cost_Nominal,'-.^',...
+    flow,cost_Greedy,'-.s',flow,cost_Random,'-.d',flow,cost_Nocache,'-.p');
 title('cost');
 xlabel('number of flows');
 ylabel('total cost');
-legend('MILP','Nominal','Greedy','Randomized','No Cache');
+legend({'MILP','Nominal','Greedy','Randomized','No Cache'},'location','northwest');
 
-delay_MILP=result(1:1:10,9);
-delay_Nominal=result(1:1:10,10);
-delay_Greedy=result(1:1:10,11);
-delay_Random=result(1:1:10,12);
-delay_Tolerance=result(1:1:10,13);
+delay_MILP=result(1:1:NF,9);
+delay_Nominal=result(1:1:NF,10);
+delay_Greedy=result(1:1:NF,11);
+delay_Random=result(1:1:NF,12);
+delay_Tolerance=result(1:1:NF,13);
 figure(2);
-plot(flow,delay_MILP,'-o',flow,delay_Nominal,'-+',...
-    flow,delay_Greedy,'-*',flow,delay_Random,'-d',flow,delay_Tolerance,'-x');
+plot(flow,delay_MILP,'-.o',flow,delay_Nominal,'-.^',...
+    flow,delay_Greedy,'-.s',flow,delay_Random,'-.d',flow,delay_Tolerance,'-.p');
 title('delay time');
 xlabel('number of flows');
 ylabel('delay time(ms)');
-legend('MILP','Nominal','Greedy','Randomized','Delay Tolerance');
+legend({'MILP','Nominal','Greedy','Randomized','Delay Tolerance'},'location','northwest');
 
-% filename='data.xlsx';
-% xlswrite(filename,result);
+filename='data.xlsx';
+xlswrite(filename,result);
