@@ -24,6 +24,6 @@ end
 % each server service rate
 % assuming service rates for different flows are same
 % unit: Mbps
-mu=poissrnd(50+50*floor(NF/5),1,length(edge_cloud));
+mu=poissrnd(100,1,length(edge_cloud));
 end
 
