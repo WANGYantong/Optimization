@@ -8,14 +8,14 @@ TIMES_HARDCODE = 10000;
 [pre_allocate,ar_list,pre_cost] = Greedy(Flows,edge_clouds,access_routers,...
     Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish);
 
-time_flag_ori = delay_detector(pre_allocate,path,R_k,C_l,lambda,...
-    mu,ce,Tpr,delta);
+time_delay_ori = TimeCalculator(pre_allocate,path,R_k,C_l,lambda,mu,...
+    ce,Tpr,edge_clouds,server);
 
 cache_node = pre_allocate;
 access_list = ar_list;
 total_cost = pre_cost;
 
-if(time_flag_ori==1)
+if(time_delay_ori <= delta)
     TIMES_HARDCODE = 100;
 %     return
 end
@@ -31,16 +31,22 @@ for ii = 1:TIMES_HARDCODE
     if(legal_flag == 1)
         pre_cost = CostCalculator(pre_allocate,ar_list,Wsize,probability,...
             Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,edge_clouds,server);
-        time_flag_pre = delay_detector(pre_allocate,path,R_k,C_l,lambda,...
-            mu,ce,Tpr,delta);
+        time_delay_pre = TimeCalculator(pre_allocate,path,R_k,C_l,lambda,mu,...
+            ce,Tpr,edge_clouds,server);
         
-        if(time_flag_pre ==1)
-            if(time_flag_ori == 0) || ((time_flag_ori == 1) && (pre_cost < total_cost))
+        if(time_delay_pre <= delta)
+            if(time_delay_ori > delta) || ((time_delay_ori <= delta) && (pre_cost < total_cost))
                 cache_node = pre_allocate;
                 access_list = ar_list;
                 total_cost = pre_cost;
 %                 time_flag_ori = time_flag_pre;
                 return
+            end
+        else if(pre_cost < total_cost) && (time_delay_pre < time_delay_ori)
+                cache_node = pre_allocate;
+                access_list = ar_list;
+                total_cost = pre_cost;
+                time_delay_ori = time_flag_pre;
             end
         end
     end

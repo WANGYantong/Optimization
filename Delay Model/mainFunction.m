@@ -36,7 +36,7 @@ counter_path=numel(path);
 
 %% generate parameters
 % caching cost impact factor
-alpha=10;
+alpha=1;
 
 % the maximum number of edge cloud used to cache
 N_k=1;
@@ -69,7 +69,7 @@ C_l=sum(R_k)+100;
 
 % delay tolerance
 % unit: Ms
-delta=20+5*NF;
+delta=24+5*NF;
 
 % propagation delay
 % unit: Ms
@@ -225,8 +225,8 @@ w_pi=reshape(w_pi,NF,m,n);
 
 objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
 
-punish=12000;
-penalty=0.01;
+punish=1200;
+penalty=0.2;
 
 objfun3=(1-sum(sum(probability_pi.*pi,3),2))*punish;
 
