@@ -50,7 +50,7 @@ W_k=W_k(1:NF);
 utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-W_e=6000*ceil(NF/10);
+W_e=10000;
 Zeta_e=ones(size(edge_cloud))*W_e;
 Zeta_e=Zeta_e.*(1-utilization);
 
@@ -69,7 +69,7 @@ C_l=sum(R_k)+100;
 
 % delay tolerance
 % unit: Ms
-delta=24+5*NF;
+delta=20+5*NF;
 
 % propagation delay
 % unit: Ms
@@ -77,9 +77,11 @@ Tpr=5;
 
 % mobile user movement
 probability_ka=zeros(NF,length(targets));
-for ii=1:NF
-    probability_ka(ii,:)=GetFlowProbability(ii,access_router,targets);
-end
+% for ii=1:NF
+%     probability_ka(ii,:)=GetFlowProbability(ii,access_router,targets);
+% end
+ probability_ka(1,:)=GetFlowProbability(ii,access_router,targets);
+ probability_ka=repmat(probability_ka(1,:),NF,1);
 
 % define eta is the connect matrix which combine the access router and its 
 % 2-hop neighbor edge clouds
@@ -225,8 +227,8 @@ w_pi=reshape(w_pi,NF,m,n);
 
 objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
 
-punish=1200;
-penalty=0.2;
+punish=1000;
+penalty=0.1;
 
 objfun3=(1-sum(sum(probability_pi.*pi,3),2))*punish;
 
@@ -408,6 +410,6 @@ result(NF,18)=randomized_time;
 fprintf("\ndelay tolerance is %f\n",delta);
 result(NF,13)=delta;
 
-result(NF,7)=punish*NF;
+result(NF,7)=punish*NF+penalty*punish*(10*NF+Tpr+delta_link-delta);
 
 end

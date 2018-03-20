@@ -3,10 +3,10 @@ clear
 clc
 
 %%
-flow=1:1:20;
+flow=1:1:10;
 NF=length(flow);
-NF_TOTAL=length(flow);
-% NF_TOTAL=20;
+% NF_TOTAL=length(flow);
+NF_TOTAL=20;
 result=zeros(NF_TOTAL,18);
 
 %%
@@ -44,5 +44,5 @@ xlabel('number of flows');
 ylabel('delay time(ms)');
 legend({'MILP','Nominal','Greedy','Randomized','Delay Tolerance'},'location','northwest');
 
-filename='data.xlsx';
-xlswrite(filename,result);
+% filename='data.xlsx';
+% xlswrite(filename,result);

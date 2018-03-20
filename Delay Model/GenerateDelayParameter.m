@@ -14,15 +14,13 @@ lambda=poissrnd(200,NF_stable,length(edge_cloud));
 
 % number of servers
 ce=zeros(size(edge_cloud));
-ce(1:5)=2+floor(NF/10);
-ce(6:10)=3+2*floor(NF/10);
-% for ii=1:length(ce)
-%     if rand()>0.5
-%         ce(ii)=2+floor(NF/10);
-%     else
-%         ce(ii)=3+2*floor(NF/10);
-%     end
-% end
+for ii=1:length(ce)
+    if rand()>0.6
+        ce(ii)=2+floor(NF/10);
+    else
+        ce(ii)=4+2*floor(NF/10);
+    end
+end
 
 % each server service rate
 % assuming service rates for different flows are same
