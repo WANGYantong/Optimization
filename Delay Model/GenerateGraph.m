@@ -37,8 +37,7 @@ router=[router1,router2,router3,router4,router5,router6,router7,router8];
 
 buff_A=randperm(numel(access_router));
 buff_B=randperm(numel(router))+router1-1;
-% edge_cloud=[buff_A(1:4),buff_B(1:6)];
-edge_cloud=[buff_B(1:6)];
+edge_cloud=[buff_A(1:4),buff_B(1:6)];
 
 %basic graph topology from nsnSim paper, for the part of backbone and access layer
 s = [data_server,relay1,relay1,relay3,relay3,relay3,relay2,relay2,relay7,...
@@ -54,14 +53,16 @@ t = [relay1,relay2,relay3,relay7,relay6,relay5,relay5,relay4,relay14,...
      router6,router6,router7,router8,AR5,...
      AR2,AR2,router7,AR3,AR3,AR4,AR4];
 
-mu=100;
-sigma=30;
-weights=round(normrnd(mu,sigma,size(s)));
+% mu=100;
+% sigma=30;
+% weights=round(normrnd(mu,sigma,size(s)));
+weights=randi([10 100],size(s));
 
 G=graph(s,t,weights,vertice_names);
 
 %some modification of graph G, to make it looks like access layer topology...
-weights_mod=round(normrnd(mu,sigma,7,1));
+% weights_mod=round(normrnd(mu,sigma,7,1));
+weights_mod=randi([10 100],7,1);
 G=addedge(G,router5,AR2,weights_mod(1));
 G=addedge(G,router3,router6,weights_mod(2));
 G=addedge(G,router6,AR3,weights_mod(3));

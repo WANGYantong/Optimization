@@ -36,7 +36,7 @@ counter_path=numel(path);
 
 %% generate parameters
 % caching cost impact factor
-alpha=1;
+alpha=100;
 
 % the maximum number of edge cloud used to cache
 N_k=1;
@@ -69,11 +69,11 @@ C_l=sum(R_k)+100;
 
 % delay tolerance
 % unit: Ms
-delta=20+5*NF;
+delta=15+5*NF;
 
 % propagation delay
 % unit: Ms
-Tpr=5;
+Tpr=10;
 
 % mobile user movement
 probability_ka=zeros(NF,length(targets));
@@ -239,7 +239,7 @@ ProCache.Constraints.ec_cache_num_constr2=ec_cache_num_constr2;
 ProCache.Constraints.ec_cache_space_constr=ec_cache_space_constr;
 ProCache.Constraints.total_cache_space_constr=total_cache_space_constr;
 ProCache.Constraints.connect_ec_ar_constr1=connect_ec_ar_constr1;
-ProCache.Constraints.connect_ec_ar_constr2=connect_ec_ar_constr2;
+% ProCache.Constraints.connect_ec_ar_constr2=connect_ec_ar_constr2;
 ProCache.Constraints.linear_denominator_constr=linear_denominator_constr;
 ProCache.Constraints.y_define_constr1=y_define_constr1;
 ProCache.Constraints.y_define_constr2=y_define_constr2;
@@ -410,6 +410,6 @@ result(NF,18)=randomized_time;
 fprintf("\ndelay tolerance is %f\n",delta);
 result(NF,13)=delta;
 
-result(NF,7)=punish*NF+penalty*punish*(10*NF+Tpr+delta_link-delta);
+result(NF,7)=punish*NF+penalty*punish*(20*NF+Tpr+delta_link-delta);
 
 end

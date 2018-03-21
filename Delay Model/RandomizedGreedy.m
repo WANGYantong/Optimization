@@ -16,8 +16,8 @@ access_list = ar_list;
 total_cost = pre_cost;
 
 if(time_delay_ori <= delta)
-    TIMES_HARDCODE = 10;
-%     return
+%     TIMES_HARDCODE = 10;
+    return
 end
 
 for ii = 1:TIMES_HARDCODE

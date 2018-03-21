@@ -3,7 +3,7 @@ clear
 clc
 
 %%
-flow=1:1:10;
+flow=1:1:18;
 NF=length(flow);
 % NF_TOTAL=length(flow);
 NF_TOTAL=20;
@@ -31,12 +31,19 @@ xlabel('number of flows');
 ylabel('total cost');
 legend({'MILP','Nominal','Greedy','Randomized','No Cache'},'location','northwest');
 
+figure(2);
+plot(flow,cost_MILP./cost_Nocache,'-.o',flow,cost_Nominal./cost_Nocache,'-.^',...
+    flow,cost_Greedy./cost_Nocache,'-.s',flow,cost_Random./cost_Nocache,'-.d');
+xlabel('number of flows');
+ylabel('cost gain VS No cache');
+legend({'MILP','Nominal','Greedy','Randomized'},'location','northwest');
+
 delay_MILP=result(1:1:NF,9);
 delay_Nominal=result(1:1:NF,10);
 delay_Greedy=result(1:1:NF,11);
 delay_Random=result(1:1:NF,12);
 delay_Tolerance=result(1:1:NF,13);
-figure(2);
+figure(3);
 plot(flow,delay_MILP,'-.o',flow,delay_Nominal,'-.^',...
     flow,delay_Greedy,'-.s',flow,delay_Random,'-.d',flow,delay_Tolerance,'-.p');
 title('delay time');
@@ -44,5 +51,5 @@ xlabel('number of flows');
 ylabel('delay time(ms)');
 legend({'MILP','Nominal','Greedy','Randomized','Delay Tolerance'},'location','northwest');
 
-% filename='data.xlsx';
-% xlswrite(filename,result);
+filename='data.xlsx';
+xlswrite(filename,result);
