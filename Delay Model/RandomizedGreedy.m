@@ -16,12 +16,12 @@ access_list = ar_list;
 total_cost = pre_cost;
 
 if(time_delay_ori <= delta)
-%     TIMES_HARDCODE = 10;
-    return
+    TIMES_HARDCODE = 10;
+    %     return
 end
 
 for ii = 1:TIMES_HARDCODE
-% while(1)
+    % while(1)
     flow = randi(length(Flows));
     pos = randi(length(edge_clouds));
     pre_allocate(flow) = pos;
@@ -39,7 +39,7 @@ for ii = 1:TIMES_HARDCODE
                 cache_node = pre_allocate;
                 access_list = ar_list;
                 total_cost = pre_cost;
-%                 time_flag_ori = time_flag_pre;
+                %                 time_flag_ori = time_flag_pre;
                 return
             end
         else if(pre_cost < total_cost) && (time_delay_pre < time_delay_ori)
@@ -81,7 +81,7 @@ delay_link = GetWorstLinkDelay(C_l, R_k, path);
 NF=length(pre_allocate);
 
 % delay_edge = (delta-Tpr-delay_link)/length(ce);
-delay_edge = delta-Tpr-delay_link; 
+delay_edge = delta-Tpr-delay_link;
 
 lammax = GetMaxLambda(mu,ce,delay_edge);
 
