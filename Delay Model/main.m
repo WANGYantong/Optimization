@@ -5,17 +5,25 @@ clc
 %%
 flow=1:1:20;
 NF=length(flow);
-% NF_TOTAL=length(flow);
-NF_TOTAL=20;
+NF_TOTAL=length(flow);
+% NF_TOTAL=20;
 result=zeros(NF_TOTAL,18);
+buff=zeros(size(result));
 
 %%
+% reduce communication overhead for broadcast variable 
+flow_parallel=cell(size(NF));
+for ii=1:NF
+    flow_parallel{ii}=flow(1:ii);
+end
+
 parfor ii=1:NF
     fprintf("\n %%%%%%%%%%%%for %d flow%%%%%%%%%%%%\n",ii);
-    result(ii,1)=ii;
-    buff=mainFunction(flow(1:ii),NF_TOTAL,result);
-    result(ii,3:18)=buff(ii,3:18);
+    buff(ii,:)=mainFunction(flow_parallel{ii},NF_TOTAL);
 end
+
+result(:,1)=1:1:NF;
+result(:,3:18)=buff(:,3:18);
 
 %%
 cost_MILP=result(1:1:NF,3);

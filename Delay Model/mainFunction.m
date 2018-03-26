@@ -1,6 +1,7 @@
-function result=mainFunction(flow,NF_TOTAL,result)
+function result=mainFunction(flow,NF_TOTAL)
 %%
 rng(1);
+result=zeros(1,18);
 
 %% generate network topology
 NF=length(flow);
@@ -317,17 +318,17 @@ total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
 
 delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
 fprintf("delay time is %f\n",delay_time);
-result(NF,9)=delay_time;
+result(1,9)=delay_time;
 
 if delay_time > delta
     total_cost=total_cost+penalty*punish*(delay_time-delta);
 end
 
 fprintf("total cost is %f\n ",total_cost);
-result(NF,3)=total_cost;
+result(1,3)=total_cost;
 
 display(MILP_time);
-result(NF,15)=MILP_time;
+result(1,15)=MILP_time;
 
 %% nominal algorithm
 fprintf("\n %%%%nominal algorithm%%%%\n");
@@ -345,17 +346,17 @@ end
 
 delay_time = TimeCalculator(nominal_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
 fprintf("delay time is %f\n",delay_time);
-result(NF,10)=delay_time;
+result(1,10)=delay_time;
 
 if delay_time > delta
     nominal_total_cost=nominal_total_cost+penalty*punish*(delay_time-delta);
 end
 
 fprintf("total cost is %f\n",nominal_total_cost);
-result(NF,4)=nominal_total_cost;
+result(1,4)=nominal_total_cost;
 
 display(Nominal_time);
-result(NF,16)=Nominal_time;
+result(1,16)=Nominal_time;
 
 %% greedy algorithm
 fprintf("\n %%%%greedy algorithm%%%%\n");
@@ -369,17 +370,17 @@ end
 
 delay_time = TimeCalculator(greedy_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
 fprintf("delay time is %f\n",delay_time);
-result(NF,11)=delay_time;
+result(1,11)=delay_time;
 
 if delay_time > delta
     greedy_total_cost=greedy_total_cost+penalty*punish*(delay_time-delta);
 end
 
 fprintf("total cost is %f\n",greedy_total_cost);
-result(NF,5)=greedy_total_cost;
+result(1,5)=greedy_total_cost;
 
 display(Greedy_time);
-result(NF,17)=Greedy_time;
+result(1,17)=Greedy_time;
 
 %% randomized greedy algorithm
 fprintf("\n %%%%randomized greedy algorithm%%%%\n");
@@ -395,21 +396,21 @@ end
 
 delay_time = TimeCalculator(randomized_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
 fprintf("delay time is %f\n",delay_time);
-result(NF,12)=delay_time;
+result(1,12)=delay_time;
 
 if delay_time > delta
     randomized_total_cost=randomized_total_cost+penalty*punish*(delay_time-delta);
 end
 
 fprintf("total cost is %f\n",randomized_total_cost);
-result(NF,6)=randomized_total_cost;
+result(1,6)=randomized_total_cost;
 
 display(randomized_time);
-result(NF,18)=randomized_time;
+result(1,18)=randomized_time;
 
 fprintf("\ndelay tolerance is %f\n",delta);
-result(NF,13)=delta;
+result(1,13)=delta;
 
-result(NF,7)=punish*NF+penalty*punish*(20*NF+Tpr+delta_link-delta);
+result(1,7)=punish*NF+penalty*punish*(20*NF+Tpr+delta_link-delta);
 
 end
