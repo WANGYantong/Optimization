@@ -3,27 +3,24 @@ clear
 clc
 
 %%
-flow=1:1:20;
+flow=1:1:15;
 NF=length(flow);
-NF_TOTAL=length(flow);
-% NF_TOTAL=20;
+% NF_TOTAL=length(flow);
+NF_TOTAL=20;
 result=zeros(NF_TOTAL,18);
-buff=zeros(size(result));
 
 %%
-% reduce communication overhead for broadcast variable 
-flow_parallel=cell(size(NF));
+flow_parallel=cell(size(flow));
 for ii=1:NF
     flow_parallel{ii}=flow(1:ii);
 end
 
-parfor ii=1:NF
+for ii=1:NF
     fprintf("\n %%%%%%%%%%%%for %d flow%%%%%%%%%%%%\n",ii);
-    buff(ii,:)=mainFunction(flow_parallel{ii},NF_TOTAL);
+    result(ii,:)=mainFunction(flow_parallel{ii},NF_TOTAL);
+    fprintf("\n %%%%%%%%%%%%for %d flow%%%%%%%%%%%%\n",ii);
 end
-
-result(:,1)=1:1:NF;
-result(:,3:18)=buff(:,3:18);
+result(:,1)=1:1:NF_TOTAL;
 
 %%
 cost_MILP=result(1:1:NF,3);
@@ -33,11 +30,11 @@ cost_Random=result(1:1:NF,6);
 cost_Nocache=result(1:1:NF,7);
 figure(1);
 plot(flow,cost_MILP,'-.o',flow,cost_Nominal,'-.^',...
-    flow,cost_Greedy,'-.s',flow,cost_Random,'-.d',flow,cost_Nocache,'-.p');
+    flow,cost_Greedy,'-.s',flow,cost_Random,'-.d');
 title('cost');
 xlabel('number of flows');
 ylabel('total cost');
-legend({'MILP','Nominal','Greedy','Randomized','No Cache'},'location','northwest');
+legend({'MILP','Nominal','Greedy','Randomized'},'location','northwest');
 
 figure(2);
 plot(flow,cost_MILP./cost_Nominal,'-.^', flow,cost_MILP./cost_Greedy,'-.s',...

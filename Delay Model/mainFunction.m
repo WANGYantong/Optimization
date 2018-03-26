@@ -108,6 +108,7 @@ for ii=1:length(access_router)
     end
 end
 % eta=eta_2hop;
+
 %% decision variable
 x=optimvar('x',NF,length(edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
@@ -307,9 +308,9 @@ fprintf("\n %%%%MILP%%%%\n");
 [BB,II]=sort(s1);
 t1=t1(II);
 
-for ii=1:NF
-    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
-end
+% for ii=1:NF
+%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
+% end
 [B,I]=sort(probability_ka,2,'descend');
 ar_list=I(:,1);
 
@@ -321,11 +322,15 @@ fprintf("delay time is %f\n",delay_time);
 result(1,9)=delay_time;
 
 if delay_time > delta
-    total_cost=total_cost+penalty*punish*(delay_time-delta);
+    total_cost_add=total_cost+penalty*punish*(delay_time-delta);
+    fprintf("original cost is %f, penalty is %f",total_cost,...
+        total_cost_add-total_cost);
+else
+    total_cost_add=total_cost;
 end
 
-fprintf("total cost is %f\n ",total_cost);
-result(1,3)=total_cost;
+fprintf("total cost is %f\n ",total_cost_add);
+result(1,3)=total_cost_add;
 
 display(MILP_time);
 result(1,15)=MILP_time;
@@ -341,7 +346,7 @@ for ii=1:length(nominal_cache_node)
         fprintf("for flow %d , cache in data server \n", ii);
         continue
     end
-    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(nominal_cache_node(ii)));
+%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(nominal_cache_node(ii)));
 end
 
 delay_time = TimeCalculator(nominal_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
@@ -349,11 +354,15 @@ fprintf("delay time is %f\n",delay_time);
 result(1,10)=delay_time;
 
 if delay_time > delta
-    nominal_total_cost=nominal_total_cost+penalty*punish*(delay_time-delta);
+    nominal_total_cost_add=nominal_total_cost+penalty*punish*(delay_time-delta);
+    fprintf("original cost is %f, penalty is %f",nominal_total_cost,...
+        nominal_total_cost_add-nominal_total_cost);
+else
+    nominal_total_cost_add=nominal_total_cost;
 end
 
-fprintf("total cost is %f\n",nominal_total_cost);
-result(1,4)=nominal_total_cost;
+fprintf("total cost is %f\n",nominal_total_cost_add);
+result(1,4)=nominal_total_cost_add;
 
 display(Nominal_time);
 result(1,16)=Nominal_time;
@@ -364,20 +373,24 @@ tic;
 [greedy_cache_node, ~, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
 Greedy_time=toc;
-for ii=1:length(greedy_cache_node)
-    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii)));
-end
+% for ii=1:length(greedy_cache_node)
+%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii)));
+% end
 
 delay_time = TimeCalculator(greedy_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
 fprintf("delay time is %f\n",delay_time);
 result(1,11)=delay_time;
 
 if delay_time > delta
-    greedy_total_cost=greedy_total_cost+penalty*punish*(delay_time-delta);
+    greedy_total_cost_add=greedy_total_cost+penalty*punish*(delay_time-delta);
+    fprintf("original cost is %f, penalty is %f",greedy_total_cost,...
+        greedy_total_cost_add-greedy_total_cost);
+else
+    greedy_total_cost_add=greedy_total_cost;
 end
 
-fprintf("total cost is %f\n",greedy_total_cost);
-result(1,5)=greedy_total_cost;
+fprintf("total cost is %f\n",greedy_total_cost_add);
+result(1,5)=greedy_total_cost_add;
 
 display(Greedy_time);
 result(1,17)=Greedy_time;
@@ -385,28 +398,38 @@ result(1,17)=Greedy_time;
 %% randomized greedy algorithm
 fprintf("\n %%%%randomized greedy algorithm%%%%\n");
 tic;
-[randomized_cache_node, access_list, randomized_total_cost]=...
-    RandomizedGreedy(flow,edge_cloud,access_router,...
-    W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,...
-    lambda,mu,ce,Tpr,delta,path,R_k,C_l,server);
+
+% try to use Monte Carlo
+Times=1000;
+randomized_total_cost_add=zeros(Times,1);
+delay_time=zeros(Times,1);
+
+parfor ii=1:Times
+    [randomized_cache_node, ~, randomized_total_cost]=...
+        RandomizedGreedy(flow,edge_cloud,access_router,...
+        W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,...
+        lambda,mu,ce,Tpr,delta,path,R_k,C_l,server);
+    delay_time(ii) = TimeCalculator(randomized_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
+    if delay_time(ii) > delta
+        randomized_total_cost_add(ii)=randomized_total_cost+penalty*punish*(delay_time(ii)-delta);
+    else
+        randomized_total_cost_add(ii)=randomized_total_cost;
+    end
+end
+
 randomized_time=toc;
-for ii=1:length(randomized_cache_node)
-    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(randomized_cache_node(ii)));
-end
+% for ii=1:length(randomized_cache_node)
+%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(randomized_cache_node(ii)));
+% end
 
-delay_time = TimeCalculator(randomized_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
-fprintf("delay time is %f\n",delay_time);
-result(1,12)=delay_time;
+fprintf("delay time is %f\n",mean(delay_time));
+result(1,12)=mean(delay_time);
 
-if delay_time > delta
-    randomized_total_cost=randomized_total_cost+penalty*punish*(delay_time-delta);
-end
-
-fprintf("total cost is %f\n",randomized_total_cost);
-result(1,6)=randomized_total_cost;
+fprintf("total cost is %f\n",mean(randomized_total_cost_add));
+result(1,6)=mean(randomized_total_cost_add);
 
 display(randomized_time);
-result(1,18)=randomized_time;
+result(1,18)=randomized_time/Times;
 
 fprintf("\ndelay tolerance is %f\n",delta);
 result(1,13)=delta;
