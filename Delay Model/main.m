@@ -10,7 +10,7 @@ NF_TOTAL=20;
 result=zeros(NF_TOTAL,18);
 
 %%
-for ii=1:NF
+parfor ii=1:NF
     fprintf("\n %%%%%%%%%%%%for %d flow%%%%%%%%%%%%\n",ii);
     result(ii,1)=ii;
     buff=mainFunction(flow(1:ii),NF_TOTAL,result);

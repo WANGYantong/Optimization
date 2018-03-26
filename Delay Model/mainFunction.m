@@ -36,7 +36,7 @@ counter_path=numel(path);
 
 %% generate parameters
 % caching cost impact factor
-alpha=100;
+alpha=1;
 
 % the maximum number of edge cloud used to cache
 N_k=1;
