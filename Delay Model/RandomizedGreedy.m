@@ -42,7 +42,8 @@ for ii = 1:TIMES_HARDCODE
                 %                 time_flag_ori = time_flag_pre;
                 return
             end
-        else if(pre_cost < total_cost) && (time_delay_pre < time_delay_ori)
+        else
+            if(pre_cost < total_cost) && (time_delay_pre < time_delay_ori)
                 cache_node = pre_allocate;
                 access_list = ar_list;
                 total_cost = pre_cost;

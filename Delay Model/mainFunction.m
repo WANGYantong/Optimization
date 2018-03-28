@@ -37,7 +37,7 @@ counter_path=numel(path);
 
 %% generate parameters
 % caching cost impact factor
-alpha=1;
+alpha=10;
 
 % the maximum number of edge cloud used to cache
 N_k=1;
@@ -51,7 +51,8 @@ W_k=W_k(1:NF);
 utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-W_e=5000+2000*floor(NF/10);
+% W_e=5000+2000*floor(NF/10);
+W_e=6000;
 Zeta_e=ones(size(edge_cloud))*W_e;
 Zeta_e=Zeta_e.*(1-utilization);
 
@@ -259,81 +260,81 @@ ProCache.Constraints.omega_define_constr3=omega_define_constr3;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
 %% solve the problem using MILP
-% opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
-opts=optimoptions('intlinprog','Display','off');
-tic;
-[sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
-MILP_time=toc;
-
-if isempty(sol)
-    disp('The solver did not return a solution.')
-    return
-end
-
-%caculate the number of constrains
-buff=struct2cell(ProCache.Constraints);
-counter_constraints=0;
-for ii=1:numel(buff)
-    counter_constraints=counter_constraints+numel(buff{ii});
-end
-fprintf('The total number of constraints are %d.\n', counter_constraints);
-
-%examine the sol
-bool_buff=zeros(numel(buff),1);
-for ii=1:numel(buff)
-    if max(infeasibility(buff{ii},sol))<=output.constrviolation
-        bool_buff(ii)=1;
-    end
-end
-if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
-    disp('the solution is feasible')
-else
-    disp('the solution is not feasible')
-end
-
-%draw the result of MILP
-[s1,t1]=find(round(sol.x));
-% [s2,t2]=find(round(sol.eta));
-
-hold on
-for ii=1:NF
-    highlight(p,edge_cloud(t1(ii)),'nodecolor','c');
-    %     highlight(p,path(),'edgecolor','m');
-end
-hold off
+% % opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
+% opts=optimoptions('intlinprog','Display','off');
+% tic;
+% [sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
+% MILP_time=toc;
+% 
+% if isempty(sol)
+%     disp('The solver did not return a solution.')
+%     return
+% end
+% 
+% %caculate the number of constrains
+% buff=struct2cell(ProCache.Constraints);
+% counter_constraints=0;
+% for ii=1:numel(buff)
+%     counter_constraints=counter_constraints+numel(buff{ii});
+% end
+% fprintf('The total number of constraints are %d.\n', counter_constraints);
+% 
+% %examine the sol
+% bool_buff=zeros(numel(buff),1);
+% for ii=1:numel(buff)
+%     if max(infeasibility(buff{ii},sol))<=output.constrviolation
+%         bool_buff(ii)=1;
+%     end
+% end
+% if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
+%     disp('the solution is feasible')
+% else
+%     disp('the solution is not feasible')
+% end
+% 
+% %draw the result of MILP
+% [s1,t1]=find(round(sol.x));
+% % [s2,t2]=find(round(sol.eta));
+% 
+% hold on
+% for ii=1:NF
+%     highlight(p,edge_cloud(t1(ii)),'nodecolor','c');
+%     %     highlight(p,path(),'edgecolor','m');
+% end
+% hold off
 
 %% result of MILP algorithm
-fprintf("\n %%%%MILP%%%%\n");
-
-[BB,II]=sort(s1);
-t1=t1(II);
-
-% for ii=1:NF
-%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
+% fprintf("\n %%%%MILP%%%%\n");
+% 
+% [BB,II]=sort(s1);
+% t1=t1(II);
+% 
+% % for ii=1:NF
+% %     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
+% % end
+% [B,I]=sort(probability_ka,2,'descend');
+% ar_list=I(:,1);
+% 
+% total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
+%     Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud,server);
+% 
+% delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
+% fprintf("delay time is %f\n",delay_time);
+% result(1,9)=delay_time;
+% 
+% if delay_time > delta
+%     total_cost_add=total_cost+penalty*punish*(delay_time-delta);
+%     fprintf("original cost is %f, penalty is %f",total_cost,...
+%         total_cost_add-total_cost);
+% else
+%     total_cost_add=total_cost;
 % end
-[B,I]=sort(probability_ka,2,'descend');
-ar_list=I(:,1);
-
-total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
-    Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud,server);
-
-delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
-fprintf("delay time is %f\n",delay_time);
-result(1,9)=delay_time;
-
-if delay_time > delta
-    total_cost_add=total_cost+penalty*punish*(delay_time-delta);
-    fprintf("original cost is %f, penalty is %f",total_cost,...
-        total_cost_add-total_cost);
-else
-    total_cost_add=total_cost;
-end
-
-fprintf("total cost is %f\n ",total_cost_add);
-result(1,3)=total_cost_add;
-
-display(MILP_time);
-result(1,15)=MILP_time;
+% 
+% fprintf("total cost is %f\n ",total_cost_add);
+% result(1,3)=total_cost_add;
+% 
+% display(MILP_time);
+% result(1,15)=MILP_time;
 
 %% nominal algorithm
 fprintf("\n %%%%nominal algorithm%%%%\n");
@@ -346,7 +347,7 @@ for ii=1:length(nominal_cache_node)
         fprintf("for flow %d , cache in data server \n", ii);
         continue
     end
-%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(nominal_cache_node(ii)));
+    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(nominal_cache_node(ii)));
 end
 
 delay_time = TimeCalculator(nominal_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
@@ -373,9 +374,9 @@ tic;
 [greedy_cache_node, ~, greedy_total_cost]=Greedy(flow,edge_cloud,access_router,...
     W_k,probability_ka,Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish);
 Greedy_time=toc;
-% for ii=1:length(greedy_cache_node)
-%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii)));
-% end
+for ii=1:length(greedy_cache_node)
+    fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(greedy_cache_node(ii)));
+end
 
 delay_time = TimeCalculator(greedy_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
 fprintf("delay time is %f\n",delay_time);
@@ -403,6 +404,7 @@ tic;
 Times=1000;
 randomized_total_cost_add=zeros(Times,1);
 delay_time=zeros(Times,1);
+correct_flag=zeros(Times,1);
 
 parfor ii=1:Times
     [randomized_cache_node, ~, randomized_total_cost]=...
@@ -412,6 +414,7 @@ parfor ii=1:Times
     delay_time(ii) = TimeCalculator(randomized_cache_node,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
     if delay_time(ii) > delta
         randomized_total_cost_add(ii)=randomized_total_cost+penalty*punish*(delay_time(ii)-delta);
+        correct_flag(ii)=1;
     else
         randomized_total_cost_add(ii)=randomized_total_cost;
     end
@@ -422,18 +425,20 @@ randomized_time=toc;
 %     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(randomized_cache_node(ii)));
 % end
 
+fprintf("outage probability is %f\n",sum(correct_flag)/Times);
+
 fprintf("delay time is %f\n",mean(delay_time));
 result(1,12)=mean(delay_time);
 
 fprintf("total cost is %f\n",mean(randomized_total_cost_add));
 result(1,6)=mean(randomized_total_cost_add);
 
-display(randomized_time);
+display(randomized_time/Times);
 result(1,18)=randomized_time/Times;
 
 fprintf("\ndelay tolerance is %f\n",delta);
 result(1,13)=delta;
 
-result(1,7)=punish*NF+penalty*punish*(20*NF+Tpr+delta_link-delta);
+result(1,7)=punish*NF+penalty*punish*(10*NF+Tpr+delta_link-delta);
 
 end
