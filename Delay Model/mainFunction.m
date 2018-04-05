@@ -260,81 +260,81 @@ ProCache.Constraints.omega_define_constr3=omega_define_constr3;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
 %% solve the problem using MILP
-% % opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
-% opts=optimoptions('intlinprog','Display','off');
-% tic;
-% [sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
-% MILP_time=toc;
-% 
-% if isempty(sol)
-%     disp('The solver did not return a solution.')
-%     return
-% end
-% 
-% %caculate the number of constrains
-% buff=struct2cell(ProCache.Constraints);
-% counter_constraints=0;
-% for ii=1:numel(buff)
-%     counter_constraints=counter_constraints+numel(buff{ii});
-% end
-% fprintf('The total number of constraints are %d.\n', counter_constraints);
-% 
-% %examine the sol
-% bool_buff=zeros(numel(buff),1);
-% for ii=1:numel(buff)
-%     if max(infeasibility(buff{ii},sol))<=output.constrviolation
-%         bool_buff(ii)=1;
-%     end
-% end
-% if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
-%     disp('the solution is feasible')
-% else
-%     disp('the solution is not feasible')
-% end
-% 
-% %draw the result of MILP
-% [s1,t1]=find(round(sol.x));
-% % [s2,t2]=find(round(sol.eta));
-% 
-% hold on
-% for ii=1:NF
-%     highlight(p,edge_cloud(t1(ii)),'nodecolor','c');
-%     %     highlight(p,path(),'edgecolor','m');
-% end
-% hold off
+% opts=optimoptions('intlinprog','Display','off','PlotFcn',@optimplotmilp);
+opts=optimoptions('intlinprog','Display','off');
+tic;
+[sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
+MILP_time=toc;
+
+if isempty(sol)
+    disp('The solver did not return a solution.')
+    return
+end
+
+%caculate the number of constrains
+buff=struct2cell(ProCache.Constraints);
+counter_constraints=0;
+for ii=1:numel(buff)
+    counter_constraints=counter_constraints+numel(buff{ii});
+end
+fprintf('The total number of constraints are %d.\n', counter_constraints);
+
+%examine the sol
+bool_buff=zeros(numel(buff),1);
+for ii=1:numel(buff)
+    if max(infeasibility(buff{ii},sol))<=output.constrviolation
+        bool_buff(ii)=1;
+    end
+end
+if (exitflag=="OptimalSolution")&&(all(bool_buff==1))
+    disp('the solution is feasible')
+else
+    disp('the solution is not feasible')
+end
+
+%draw the result of MILP
+[s1,t1]=find(round(sol.x));
+% [s2,t2]=find(round(sol.eta));
+
+hold on
+for ii=1:NF
+    highlight(p,edge_cloud(t1(ii)),'nodecolor','c');
+    %     highlight(p,path(),'edgecolor','m');
+end
+hold off
 
 %% result of MILP algorithm
-% fprintf("\n %%%%MILP%%%%\n");
-% 
-% [BB,II]=sort(s1);
-% t1=t1(II);
-% 
-% % for ii=1:NF
-% %     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
-% % end
-% [B,I]=sort(probability_ka,2,'descend');
-% ar_list=I(:,1);
-% 
-% total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
-%     Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud,server);
-% 
-% delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
-% fprintf("delay time is %f\n",delay_time);
-% result(1,9)=delay_time;
-% 
-% if delay_time > delta
-%     total_cost_add=total_cost+penalty*punish*(delay_time-delta);
-%     fprintf("original cost is %f, penalty is %f",total_cost,...
-%         total_cost_add-total_cost);
-% else
-%     total_cost_add=total_cost;
+fprintf("\n %%%%MILP%%%%\n");
+
+[BB,II]=sort(s1);
+t1=t1(II);
+
+% for ii=1:NF
+%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
 % end
-% 
-% fprintf("total cost is %f\n ",total_cost_add);
-% result(1,3)=total_cost_add;
-% 
-% display(MILP_time);
-% result(1,15)=MILP_time;
+[B,I]=sort(probability_ka,2,'descend');
+ar_list=I(:,1);
+
+total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
+    Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud,server);
+
+delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
+fprintf("delay time is %f\n",delay_time);
+result(1,9)=delay_time;
+
+if delay_time > delta
+    total_cost_add=total_cost+penalty*punish*(delay_time-delta);
+    fprintf("original cost is %f, penalty is %f",total_cost,...
+        total_cost_add-total_cost);
+else
+    total_cost_add=total_cost;
+end
+
+fprintf("total cost is %f\n ",total_cost_add);
+result(1,3)=total_cost_add;
+
+display(MILP_time);
+result(1,15)=MILP_time;
 
 %% nominal algorithm
 fprintf("\n %%%%nominal algorithm%%%%\n");
