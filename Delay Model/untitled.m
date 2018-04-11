@@ -1,6 +1,7 @@
 clear
 clc
 
+rng(1);
 %% construct network topology
 [G_full,vertice_names,edge_cloud,p]=GenerateGraph();
 N=length(vertice_names);
@@ -21,7 +22,10 @@ for ii=1:NF
 end
 
 % store result
-result=zeros(NF_TOTAL,18);
+result=zeros(NF_TOTAL,20);
+for ii=1:NF
+    result(ii,1)=ii;
+end
 
 % weight of cache cost
 alpha=10;
@@ -62,7 +66,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=6000;
+data.W_e=5000;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 
@@ -77,12 +81,12 @@ data.ce=ce;
 data.mu=mu;
 
 % link capacity
-data.C_l=1600;
+data.C_l=1;
 
-% delay tolerance: 20,50,100,200
+% delay tolerance: 50,150,250
 % unit: Ms
-delta=[20,50,100,200];
-data.delta=randi(4,1,NF);
+delta=[50,150,250];
+data.delta=randi(3,1,NF);
 data.delta=delta(data.delta);
 
 % mobile user movement
@@ -93,13 +97,37 @@ end
 data.probability=probability_ka;
 
 %% optimal solution
-% for ii=1:NF
-%    MILP(flow_parallel{ii},data,alpha); 
+% buffer=zeros(NF,4);
+% parfor ii=1:NF
+%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty);
 % end
-
+% 
+% result(1:NF,2:5)=buffer;
 
 %% heuristic solution
 
+% Nearest Edge Cloud Caching
+buffer=zeros(NF,4);
+parfor ii=1:NF
+   buffer(ii,:)=NEC(flow_parallel{ii},data,alpha,penalty);
+end
 
+result(1:NF,7:10)=buffer;
+
+% Greedy Caching
+buffer=zeros(NF,4);
+parfor ii=1:NF
+   buffer(ii,:)=GRD(flow_parallel{ii},data,alpha,penalty);
+end
+
+result(1:NF,12:15)=buffer;
+
+% Randomized Greedy Caching
+% buffer=zeros(NF,4);
+% parfor ii=1:NF
+%    buffer(ii,:)=RGR(flow_parallel{ii},data,alpha,penalty);
+% end
+% 
+% result(1:NF,17:20)=buffer;
 
 %% monte carlo simulation

@@ -1,5 +1,13 @@
-function delay_time = TimeCalculator(cache_allocate,path,R_k,C_l,lambda,mu,...
-    ce,Tpr,edge_clouds,server)
+function delay_time = TimeCalculator(solution,data)
+
+cache_allocate=solution.allocation;
+path=data.path;
+R_k=data.R_k;
+C_l=data.C_l;
+mu=data.mu;
+ce=data.ce;
+edge_clouds=data.edge_cloud;
+server=data.server;
 
 delay_link = GetWorstLinkDelay(C_l, R_k, path);
 
@@ -14,27 +22,24 @@ for ii=1:length(edge_clouds)
             continue 
         end
         if(edge_clouds(ii)==edge_clouds(cache_allocate(kk)))
-            lambda_e(ii)=lambda_e(ii)+lambda(kk,ii);
+            lambda_e(ii)=lambda_e(ii)+1;
         end
     end
 end
 
-delay_edge=zeros(size(edge_clouds));
+delay_edge=zeros(server,1);
 for ii=1:length(edge_clouds)
     if(lambda_e(ii)>=ce(ii)*mu(ii))
-        delay_edge(ii)=10;
+        delay_edge(ii)=50;
     else
         delay_edge(ii)=MMC_Calculator(lambda_e(ii),mu(ii),ce(ii));
     end
 end
 
-delay_edge_max=max(delay_edge);
-% delay_edge_max=0;
-% for ii=1:length(edge_clouds)
-%         delay_edge_max=delay_edge_max+delay_edge(ii);
-% end
-
-delay_time =delay_edge_max+delay_link+Tpr+10*sum(label);
+delay_time=zeros(1,NF);
+for ii=1:NF
+    delay_time(ii) =delay_edge(cache_allocate(ii))+2*delay_link+50*label(ii);
+end
 
 end
 

@@ -15,21 +15,19 @@ if nargin ~= 3
         error('Error. \n Illegal input number')
 end
 
-basic = sum(Rk)/(Cl-sum(Rk)); % unit ms
+basic = 1/(Cl-sum(Rk)); % unit ms
 factornum = 0;
 
 for ii = 1:numel(path)
-        if isempty(path{ii})
-                continue;
-        end
-
-%         for jj = 1:numel(path{ii})
-%                 compare = numel(path{ii}{jj})-1;
-                compare = numel(path{ii})-1;
-                if factornum < compare
-                        factornum = compare;
-                end
-%         end
+    if isempty(path{ii})
+        continue;
+    end
+    
+    compare = numel(path{ii})-1;
+    if factornum < compare
+        factornum = compare;
+    end
+    
 end
 
 link_delay = basic * factornum;       

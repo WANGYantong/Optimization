@@ -1,13 +1,17 @@
-function [cache_node, ar_list, total_cost] = Nominal(Flows,edge_clouds,access_routers,...
-    Wsize,probability,Rspace,Fullspace,Rtotal,utilization,graph,alpha,punish,server)
+function solution = Nominal(flows,data,alpha,punish)
 
-NF=length(Flows);
+edge_clouds=data.edge_cloud;
+access_routers=data.access_router;
+Wsize=data.W_k;
+probability=data.probability;
+Rspace=data.Zeta_e;
+Rtotal=data.Zeta_t;
+graph=data.graph;
+server=data.server;
+
+NF=length(flows);
 cache_node=zeros(NF,1);
 ar_list=zeros(NF,1);
-
-probability_buff=probability;
-Rspace_buff=Rspace;
-Rtotal_buff=Rtotal;
 
 for ii=1:NF
     [flow,ar,list_ec]=FindEcForFlow(probability,access_routers,graph,...
@@ -27,8 +31,9 @@ for ii=1:NF
     end   
 end
 
-total_cost=CostCalculator(cache_node,ar_list,Wsize,probability_buff,...
-    Rspace_buff,Fullspace,Rtotal_buff,utilization,graph,alpha,punish,edge_clouds,server);
+solution.allocation=cache_node;
+total_cost=CostCalculator(solution,data,alpha,punish);
+solution.total_cost=total_cost;
 
 end
 

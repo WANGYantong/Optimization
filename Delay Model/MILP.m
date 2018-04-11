@@ -1,6 +1,14 @@
-function [] = MILP(flow,data,alpha)
+function [result,punish] = MILP(flow,data,alpha,penalty)
 
 NF=length(flow);
+result=zeros(1,4);
+
+%% parameter tailor
+data.W_k=data.W_k(1:NF);
+data.utilization=data.utilization(1:NF);
+data.R_k=data.R_k(1:NF);
+data.delta=data.delta(1:NF);
+data.probability=data.probability(1:NF,:);
 
 %% decision variable
 x=optimvar('x',NF,length(data.edge_cloud),'Type','integer',...
@@ -20,7 +28,7 @@ omega=optimvar('omega',size(data.graph.Edges,1),NF,length(data.access_router),..
 
 %% constraints
 %ec_cache_num_constr
-ec_cache_num_constr=sum(x,2)<=data.N_k;
+ec_cache_num_constr=sum(x,2)==data.N_k;
 
 %ec_cache_space_constr
 ec_cache_space_constr=data.W_k*x<=data.Zeta_e;
@@ -68,7 +76,7 @@ beta_omega=permute(beta_omega,[2,1,3,4]);
 link_delay_constr=data.C_l*z-sum(sum(sum(R_komega.*omega.*beta_omega,2),3),4)>=1;
 
 %link_slack_constr
-%delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
+% delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
 delta_link=data.delta*2/3;
 link_slack_constr=sum(sum(sum(beta_omega.*omega,4),3),1)<=delta_link;
 
@@ -156,38 +164,36 @@ else
     disp('the solution is not feasible')
 end
 
-%% return of MILP, to be continued...
+%% return of MILP
 
 [s1,t1]=find(round(sol.x));
 
-[BB,II]=sort(s1);
+[~,II]=sort(s1);
 t1=t1(II);
 
-% for ii=1:NF
-%     fprintf("for flow %d , cache in edgecloud %d \n", ii, edge_cloud(t1(ii)));
-% end
-[B,I]=sort(probability_ka,2,'descend');
+[~,I]=sort(data.probability,2,'descend');
 ar_list=I(:,1);
 
-total_cost=CostCalculator(t1,ar_list,W_k,probability_ka,...
-    Zeta_e,W_e,Zeta_t,utilization,G_full,alpha,punish,edge_cloud,server);
+solution.allocation=t1;
+solution.ar_list=ar_list;
 
-delay_time = TimeCalculator(t1,path,R_k,C_l,lambda,mu,ce,Tpr,edge_cloud,server);
-fprintf("delay time is %f\n",delay_time);
-result(1,9)=delay_time;
+total_cost=CostCalculator(solution,data,alpha,punish);
 
-if delay_time > delta
-    total_cost_add=total_cost+penalty*punish*(delay_time-delta);
-    fprintf("original cost is %f, penalty is %f",total_cost,...
-        total_cost_add-total_cost);
-else
-    total_cost_add=total_cost;
+delay_time = TimeCalculator(solution,data);
+
+failed_number=0;
+total_cost_add=total_cost;
+for ii=1:NF
+    if delay_time(ii) > data.delta(ii)
+        total_cost_add=total_cost_add+(1/penalty)*punish(ii)*(delay_time(ii)-data.delta(ii));
+        failed_number=failed_number+1;
+    end
 end
 
-fprintf("total cost is %f\n ",total_cost_add);
-result(1,3)=total_cost_add;
+result(1,1)=total_cost_add;
+result(1,2)=total_cost_add-total_cost;
+result(1,3)=failed_number;
+result(1,4)=MILP_time;
 
-display(MILP_time);
-result(1,15)=MILP_time;
 end
 
