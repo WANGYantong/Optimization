@@ -97,12 +97,12 @@ end
 data.probability=probability_ka;
 
 %% optimal solution
-buffer=zeros(NF,6);
+buffer=zeros(NF,7);
 parfor ii=1:NF
    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty);
 end
 
-result(1:NF,3:8)=buffer;
+result(1:NF,2:8)=buffer;
 
 %% heuristic solution
 
@@ -131,63 +131,77 @@ end
 result(1:NF,24:29)=buffer;
 
 %% result comparision
-cost_MILP=result(1:1:NF,3);
-cost_Nominal=result(1:1:NF,4);
-cost_Greedy=result(1:1:NF,5);
-cost_Random=result(1:1:NF,6);
-cost_Nocache=result(1:1:NF,7);
+cost_Nocache=result(1:NF,2);
+cost_MILP=result(1:NF,3);
+cost_NEC=result(1:NF,10);
+cost_GRD=result(1:NF,17);
+cost_RGR=result(1:NF,24);
+cost_Monte_MILP=result(1:NF,7);
+cost_Monte_NEC=result(1:NF,14);
+cost_Monte_GRD=result(1:NF,21);
+cost_Monte_RGR=result(1:NF,28);
+
 figure(1);
-plot(flow,cost_MILP,'-.o',flow,cost_Nominal,'-.^',...
-    flow,cost_Greedy,'-.s',flow,cost_Random,'-.d');
+plot(flow,cost_Nocache,'-o',flow,cost_MILP,'-+',flow,cost_NEC,'-*',...
+    flow,cost_GRD,'-x',flow,cost_RGR,'-s');
 title('cost');
 xlabel('number of flows');
 ylabel('total cost');
-legend({'MILP','NEC','Greedy','Randomized'},'location','northwest');
+legend({'Nocache','MILP','NEC','GRD','RGR'},'location','northwest');
 
-delay_MILP=result(1:1:NF,9);
-delay_Nominal=result(1:1:NF,10);
-delay_Greedy=result(1:1:NF,11);
-delay_Random=result(1:1:NF,12);
-delay_Tolerance=result(1:1:NF,13);
 figure(2);
-plot(flow,delay_MILP,'-.o',flow,delay_Nominal,'-.^',...
-    flow,delay_Greedy,'-.s',flow,delay_Random,'-.d',flow,delay_Tolerance,'-r');
-title('delay time');
+plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,':+',...
+    flow,cost_Monte_NEC,':*',flow,cost_Monte_GRD,':x',flow,cost_Monte_RGR,':s');
+title('cost');
 xlabel('number of flows');
-ylabel('delay time(ms)');
-legend({'MILP','NEC','Greedy','Randomized','Delay Tolerance'},'location','northwest');
+ylabel('total cost');
+legend({'Nocache','Monte MILP','Monte NEC','Monte GRD','Monte RGR'},...
+    'location','northwest');
 
-filename='data.xlsx';
-xlswrite(filename,result);
-
-%MILP can always find the optimal solution
-satisfied_MILP=1:1:15; 
-%when it comes to 10 flows, there is an network servicing rate upgrade
-satisfied_NEC=[1,1,1,2,3,4,5,5,6,7,7,7,8,8,8];
-satisfied_Greedy=[1,1,2,3,4,5,6,6,7,9,10,10,11,12,12];
-%for Randomized, this is a mean number of 1000 monte carlo simulations,
-%so there are some fractional numbers
-satisfied_Randomized=[1,2,3,4,5,6,7,8,9,9.999,10.907,10.876,11.258,12.018,12];
-
-outage_NEC=(satisfied_MILP-satisfied_NEC)./satisfied_MILP;
-outage_Greedy=(satisfied_MILP-satisfied_Greedy)./satisfied_MILP;
-outage_Randomized=(satisfied_MILP-satisfied_Randomized)./satisfied_MILP;
-outage=[outage_NEC;outage_Greedy;outage_Randomized]';
 figure(3);
+plot(flow,cost_MILP./cost_Nocache,'-+',flow,cost_NEC./cost_Nocache,'-*',...
+    flow,cost_GRD./cost_Nocache,'-x',flow,cost_RGR./cost_Nocache,'-s');
+title('cost gain');
+xlabel('number of flows');
+ylabel('cost gain');
+legend({'MILP VS Nocache','NEC VS Nocache','GRD VS Nocache','RGR VS Nocache'},...
+    'location','northwest');
+
+figure(4);
+plot(flow,cost_Monte_MILP./cost_Nocache,':+',flow,cost_Monte_NEC./cost_Nocache,':*',...
+    flow,cost_Monte_GRD./cost_Nocache,':x',flow,cost_Monte_RGR./cost_Nocache,':s');
+title('cost gain');
+xlabel('number of flows');
+ylabel('cost gain');
+legend({'Monte_MILP VS Nocache','Monte_NEC VS Nocache','Monte_GRD VS Nocache',...
+    'Monte_RGR VS Nocache'},'location','northwest');
+
+outage_MILP=result(1:NF,5);
+outage_NEC=result(1:NF,12);
+outage_GRD=result(1:NF,19);
+outage_RGR=result(1:NF,26);
+outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR];
+figure(5);
 bar(outage,0.6);
-title('Outage Probability');
+title('Outage');
 xlabel('number of flows');
 ylim([0,1]);
-legend({'NEC','Greedy','Randomized'},'location','north');
+legend({'MILP','NEC','GRD','RGR'},'location','north');
 
-satisfied_NEC=satisfied_NEC./satisfied_MILP;
-satisfied_Greedy=satisfied_Greedy./satisfied_MILP;
-satisfied_Randomized=satisfied_Randomized./satisfied_MILP;
-satisfied_MILP=satisfied_MILP./satisfied_MILP;
-satisfied=[satisfied_MILP;satisfied_NEC;satisfied_Greedy;satisfied_Randomized]';
-figure(4);
-bar(satisfied,0.6);
-title('Satisfied Probability');
+outage_Monte_MILP=result(1:NF,8);
+outage_Monte_NEC=result(1:NF,15);
+outage_Monte_GRD=result(1:NF,22);
+outage_Monte_RGR=result(1:NF,29);
+Monte_outage=[outage_Monte_MILP,outage_Monte_NEC,outage_Monte_GRD,outage_Monte_RGR];
+figure(6);
+bar(Monte_outage,0.6);
+title('Outage');
 xlabel('number of flows');
-ylim([0 1.6]);
-legend({'MILP','NEC','Greedy','Randomized'},'location','north');
+ylim([0,1]);
+legend({'Monte MILP','Monte NEC','Monte GRD','Monte RGR'},'location','north');
+
+% export result as xlsx in Windows
+if ispc
+    filename='main.xlsx';
+    xlswrite(filename,result);
+end

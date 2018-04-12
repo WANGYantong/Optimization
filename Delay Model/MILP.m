@@ -1,7 +1,7 @@
 function [result] = MILP(flow,data,alpha,penalty)
 
 NF=length(flow);
-result=zeros(1,4);
+result=zeros(1,7);
 
 %% parameter tailor
 data.W_k=data.W_k(1:NF);
@@ -190,15 +190,25 @@ for ii=1:NF
     end
 end
 
-result(1,1)=total_cost_add;
-result(1,2)=total_cost_add-total_cost;
-result(1,3)=failed_number;
-result(1,4)=MILP_time;
+midterm=zeros(1,NF);
+for ii=1:NF
+    if 100 > data.delta(ii)
+        midterm(ii)=(1/penalty)*punish(ii)*(100-data.delta(ii))+punish(ii);
+    else
+        midterm(ii)=punish(ii);
+    end
+end
+
+result(1,1)=sum(midterm);
+result(1,2)=total_cost_add;
+result(1,3)=total_cost_add-total_cost;
+result(1,4)=failed_number;
+result(1,5)=MILP_time;
 
 %% Monte Carlo test
 
 buff=MonteCarlo(flow,solution,data,punish,alpha,penalty);
-result(1,5:6)=buff;
+result(1,6:7)=buff;
 
 end
 

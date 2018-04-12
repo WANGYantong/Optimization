@@ -9,7 +9,7 @@ data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);
 
 punish=log(max(data.delta)+50-data.delta)*500;
-result=zeros(1,4);
+result=zeros(1,6);
 
 tic;
 solution=Greedy(flow,data,alpha,punish);

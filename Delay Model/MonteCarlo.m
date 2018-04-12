@@ -73,7 +73,7 @@ for ii=1:HARDCODE
 end
 
 result(1,1)=total_cost_add/HARDCODE;
-result(1,2)=total_failed_number;
+result(1,2)=total_failed_number/HARDCODE;
 
 end
 

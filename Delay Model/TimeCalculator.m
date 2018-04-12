@@ -30,7 +30,7 @@ end
 delay_edge=zeros(server,1);
 for ii=1:length(edge_clouds)
     if(lambda_e(ii)>=ce(ii)*mu(ii))
-        delay_edge(ii)=50;
+        delay_edge(ii)=100;
     else
         delay_edge(ii)=MMC_Calculator(lambda_e(ii),mu(ii),ce(ii));
     end
@@ -38,7 +38,7 @@ end
 
 delay_time=zeros(1,NF);
 for ii=1:NF
-    delay_time(ii) =delay_edge(cache_allocate(ii))+2*delay_link+50*label(ii);
+    delay_time(ii) =delay_edge(cache_allocate(ii))+2*delay_link+100*label(ii);
 end
 
 end
