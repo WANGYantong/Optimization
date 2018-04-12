@@ -5,7 +5,6 @@ result=zeros(1,7);
 
 %% parameter tailor
 data.W_k=data.W_k(1:NF);
-data.utilization=data.utilization(1:NF);
 data.R_k=data.R_k(1:NF);
 data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);

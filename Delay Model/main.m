@@ -12,7 +12,7 @@ end
 %% generate analysis variables
 
 % each flow reprerents a mobile user
-flow=1:1:6;
+flow=1:1:15;
 NF=length(flow);
 % for stable, like rng
 NF_TOTAL=20;
