@@ -1,4 +1,4 @@
-function [result,punish] = MILP(flow,data,alpha,penalty)
+function [result] = MILP(flow,data,alpha,penalty)
 
 NF=length(flow);
 result=zeros(1,4);
@@ -194,6 +194,11 @@ result(1,1)=total_cost_add;
 result(1,2)=total_cost_add-total_cost;
 result(1,3)=failed_number;
 result(1,4)=MILP_time;
+
+%% Monte Carlo test
+
+buff=MonteCarlo(flow,solution,data,punish,alpha,penalty);
+result(1,5:6)=buff;
 
 end
 

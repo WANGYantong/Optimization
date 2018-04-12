@@ -1,9 +1,10 @@
 function [flow,ar,list_ec] = FindEcForFlow(probability,access_routers,...
-    graph,edge_clouds)
+    graph,edge_clouds,punish)
 
-[B,I]=sort(probability,2,'descend');
-[~,flow]=max(B(:,1));
-ar = access_routers(I(flow,1));
+[~,I]=sort(punish,'descend');
+flow=I(1);
+[~,II]=sort(probability(flow,:),'descend');
+ar = access_routers(II(1));
 
 list_ec=Construct_EC_List(graph,edge_clouds,ar);
 

@@ -13,10 +13,12 @@ NF=length(flows);
 cache_node=zeros(NF,1);
 ar_list=zeros(NF,1);
 
+punish_buff=punish;
+
 for ii=1:NF
     [flow,ar,list_ec]=FindEcForFlow(probability,access_routers,graph,...
-        edge_clouds);
-    probability(flow,ar)=0;
+        edge_clouds,punish_buff);
+    punish_buff(flow)=0;
     
     cache_node(flow) = list_ec(1);
     ar_list(flow) = ar;

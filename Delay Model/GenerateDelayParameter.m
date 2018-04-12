@@ -1,4 +1,4 @@
-function [R_k,ce,mu] = GenerateDelayParameter(flow_stable,edge_cloud,NF)
+function [R_k,ce,mu] = GenerateDelayParameter(flow_stable,edge_cloud)
 
 rng(1);
 

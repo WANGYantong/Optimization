@@ -31,5 +31,9 @@ result(1,2)=total_cost_add-solution.total_cost;
 result(1,3)=failed_number;
 result(1,4)=Greedy_time;
 
+%% Monte Carlo test
+
+buff=MonteCarlo(flow,solution,data,punish,alpha,penalty);
+result(1,5:6)=buff;
 end
 
