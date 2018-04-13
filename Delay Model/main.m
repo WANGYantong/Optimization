@@ -12,7 +12,7 @@ end
 %% generate analysis variables
 
 % each flow reprerents a mobile user
-flow=1:1:15;
+flow=1:1:16;
 NF=length(flow);
 % for stable, like rng
 NF_TOTAL=20;
@@ -66,7 +66,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=5000;
+data.W_e=6000;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 

@@ -1,5 +1,6 @@
 function result=MonteCarlo(flow,solution,data,punish,alpha,penalty)
 
+rng(1);
 result=zeros(1,2);
 
 HARDCODE=1000;
