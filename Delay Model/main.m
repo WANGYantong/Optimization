@@ -12,7 +12,7 @@ end
 %% generate analysis variables
 
 % each flow reprerents a mobile user
-flow=1:1:16;
+flow=1:1:12;
 NF=length(flow);
 % for stable, like rng
 NF_TOTAL=20;
@@ -30,7 +30,7 @@ end
 % weight of cache cost
 alpha=10;
 % weight of QoS penalty
-penalty=10;
+penalty=20;
 
 %% generate simulation data structure
 data.server=[data_server];
@@ -66,7 +66,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=6000;
+data.W_e=5000;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 
@@ -83,11 +83,12 @@ data.mu=mu;
 % link capacity
 data.C_l=1;
 
-% delay tolerance: 50,150,250
+% delay tolerance: 50,100,150
 % unit: Ms
-delta=[50,150,250];
-data.delta=randi(3,1,NF);
-data.delta=delta(data.delta);
+% delta=[50,100,150];
+% data.delta=randi(3,1,NF);
+% data.delta=delta(data.delta);
+data.delta=[50,50,100,100,100,100,150,150,150,150,100,100];
 
 % mobile user movement
 probability_ka=zeros(NF,length(data.targets));
@@ -150,12 +151,12 @@ ylabel('total cost');
 legend({'Nocache','MILP','NEC','GRD','RGR'},'location','northwest');
 
 figure(2);
-plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,':+',...
-    flow,cost_Monte_NEC,':*',flow,cost_Monte_GRD,':x',flow,cost_Monte_RGR,':s');
+plot(flow,cost_Monte_MILP,':+',flow,cost_Monte_NEC,':*',...
+    flow,cost_Monte_GRD,':x',flow,cost_Monte_RGR,':s');
 title('cost');
 xlabel('number of flows');
 ylabel('total cost');
-legend({'Nocache','Monte MILP','Monte NEC','Monte GRD','Monte RGR'},...
+legend({'Monte MILP','Monte NEC','Monte GRD','Monte RGR'},...
     'location','northwest');
 
 figure(3);
@@ -185,7 +186,7 @@ figure(5);
 bar(outage,0.6);
 title('Outage');
 xlabel('number of flows');
-ylim([0,1]);
+
 legend({'MILP','NEC','GRD','RGR'},'location','north');
 
 outage_Monte_MILP=result(1:NF,8);
@@ -197,11 +198,11 @@ figure(6);
 bar(Monte_outage,0.6);
 title('Outage');
 xlabel('number of flows');
-ylim([0,1]);
+% ylim([0,1]);
 legend({'Monte MILP','Monte NEC','Monte GRD','Monte RGR'},'location','north');
 
 % export result as xlsx in Windows
-if ispc
-    filename='main.xlsx';
-    xlswrite(filename,result);
-end
+% if ispc
+%     filename='main.xlsx';
+%     xlswrite(filename,result);
+% end
