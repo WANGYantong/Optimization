@@ -199,6 +199,7 @@ title('Monte Carlo outage probability');
 xlabel('number of flows');
 ylabel('outage probability');
 legend({'PCDG','NEC','GRD','RGR'},'location','north');
+applyhatch(gcf,'x.-\',[]);
 
 % export result as xlsx in Windows
 if ispc
