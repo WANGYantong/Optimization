@@ -53,7 +53,7 @@ x_pi=repmat(x,[length(data.access_router),1,1]);
 x_pi=reshape(x_pi,NF,length(data.access_router),length(data.edge_cloud));
 pi_define_constr1=pi<=x_pi;
 
-pi_define_constr2=sum(pi,3)>=sum(x_pi,3);
+pi_define_constr2=sum(pi,3)<=1;
 
 %link_delay_constr
 R_komega=repmat(data.R_k,[size(data.graph.Edges,1),1,...
@@ -120,7 +120,7 @@ ProCache.Constraints.y_define_constr1=y_define_constr1;
 ProCache.Constraints.y_define_constr2=y_define_constr2;
 ProCache.Constraints.y_define_constr3=y_define_constr3;
 ProCache.Constraints.pi_define_constr1=pi_define_constr1;
-% ProCache.Constraints.pi_define_constr2=pi_define_constr2;
+ProCache.Constraints.pi_define_constr2=pi_define_constr2;
 ProCache.Constraints.link_delay_constr=link_delay_constr;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;

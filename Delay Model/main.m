@@ -143,38 +143,37 @@ cost_Monte_GRD=result(1:NF,21);
 cost_Monte_RGR=result(1:NF,28);
 
 figure(1);
-plot(flow,cost_Nocache,'-o',flow,cost_MILP,'-+',flow,cost_NEC,'-*',...
-    flow,cost_GRD,'-x',flow,cost_RGR,'-s');
+plot(flow,cost_Nocache,'-o',flow,cost_MILP,':+',flow,cost_NEC,':*',...
+    flow,cost_GRD,':x',flow,cost_RGR,':s');
 title('cost');
 xlabel('number of flows');
 ylabel('total cost');
-legend({'Nocache','MILP','NEC','GRD','RGR'},'location','northwest');
+legend({'Nocache','PCDG','NEC','GRD','RGR'},'location','northwest');
 
 figure(2);
-plot(flow,cost_Monte_MILP,':+',flow,cost_Monte_NEC,':*',...
-    flow,cost_Monte_GRD,':x',flow,cost_Monte_RGR,':s');
-title('cost');
+plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-+',flow,cost_Monte_NEC,'-*',...
+    flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s');
+title('Monte Carlo cost');
 xlabel('number of flows');
 ylabel('total cost');
-legend({'Monte MILP','Monte NEC','Monte GRD','Monte RGR'},...
-    'location','northwest');
+legend({'Nocache','PCDG','NEC','GRD','RGR'},'location','northwest');
 
 figure(3);
-plot(flow,cost_MILP./cost_Nocache,'-+',flow,cost_NEC./cost_Nocache,'-*',...
-    flow,cost_GRD./cost_Nocache,'-x',flow,cost_RGR./cost_Nocache,'-s');
+plot(flow,cost_MILP./cost_Nocache,':+',flow,cost_NEC./cost_Nocache,':*',...
+    flow,cost_GRD./cost_Nocache,':x',flow,cost_RGR./cost_Nocache,':s');
 title('cost gain');
 xlabel('number of flows');
 ylabel('cost gain');
-legend({'MILP VS Nocache','NEC VS Nocache','GRD VS Nocache','RGR VS Nocache'},...
+legend({'PCDG VS Nocache','NEC VS Nocache','GRD VS Nocache','RGR VS Nocache'},...
     'location','northwest');
 
 figure(4);
-plot(flow,cost_Monte_MILP./cost_Nocache,':+',flow,cost_Monte_NEC./cost_Nocache,':*',...
-    flow,cost_Monte_GRD./cost_Nocache,':x',flow,cost_Monte_RGR./cost_Nocache,':s');
-title('cost gain');
+plot(flow,cost_Monte_MILP./cost_Nocache,'-+',flow,cost_Monte_NEC./cost_Nocache,'-*',...
+    flow,cost_Monte_GRD./cost_Nocache,'-x',flow,cost_Monte_RGR./cost_Nocache,'-s');
+title('Monte Carlo cost gain');
 xlabel('number of flows');
 ylabel('cost gain');
-legend({'Monte_MILP VS Nocache','Monte_NEC VS Nocache','Monte_GRD VS Nocache',...
+legend({'Monte_PCDG VS Nocache','Monte_NEC VS Nocache','Monte_GRD VS Nocache',...
     'Monte_RGR VS Nocache'},'location','northwest');
 
 outage_MILP=result(1:NF,5);
@@ -186,23 +185,23 @@ figure(5);
 bar(outage,0.6);
 title('Outage');
 xlabel('number of flows');
+ylabel('outage number');
+legend({'PCDG','NEC','GRD','RGR'},'location','north');
 
-legend({'MILP','NEC','GRD','RGR'},'location','north');
-
-outage_Monte_MILP=result(1:NF,8);
-outage_Monte_NEC=result(1:NF,15);
-outage_Monte_GRD=result(1:NF,22);
-outage_Monte_RGR=result(1:NF,29);
+outage_Monte_MILP=result(1:NF,8)./result(1:NF,1);
+outage_Monte_NEC=result(1:NF,15)./result(1:NF,1);
+outage_Monte_GRD=result(1:NF,22)./result(1:NF,1);
+outage_Monte_RGR=result(1:NF,29)./result(1:NF,1);
 Monte_outage=[outage_Monte_MILP,outage_Monte_NEC,outage_Monte_GRD,outage_Monte_RGR];
 figure(6);
-bar(Monte_outage,0.6);
-title('Outage');
+bar(Monte_outage);
+title('Monte Carlo outage probability');
 xlabel('number of flows');
-% ylim([0,1]);
-legend({'Monte MILP','Monte NEC','Monte GRD','Monte RGR'},'location','north');
+ylabel('outage probability');
+legend({'PCDG','NEC','GRD','RGR'},'location','north');
 
 % export result as xlsx in Windows
-% if ispc
-%     filename='main.xlsx';
-%     xlswrite(filename,result);
-% end
+if ispc
+    filename='main.xlsx';
+    xlswrite(filename,result);
+end
