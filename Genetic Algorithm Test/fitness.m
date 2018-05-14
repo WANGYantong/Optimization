@@ -1,8 +1,9 @@
 function [sol, fitnessVal] = fitness(sol, options)
 
 x = sol(1);
+y = sol(2);
 
-fitnessVal = x + 10*sin(5*x)+7*cos(4*x);
+fitnessVal =-(20+x.^2+y.^2-10*(cos(2*pi*x)+cos(2*pi*y)));
 
 end
 

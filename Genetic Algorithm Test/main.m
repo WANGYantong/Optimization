@@ -3,31 +3,22 @@ clear all
 clc
 
 %% II. generate problem
-x = 0:0.01:9;
-y =  x + 10*sin(5*x)+7*cos(4*x);
-
-figure
-plot(x, y)
-xlabel('axis X')
-ylabel('axis Y')
-title('y = x + 10*sin(5*x) + 7*cos(4*x)')
-
+x = -5:0.01:5;
+y = -5:0.01:5;
+z = 20+x.^2+y.^2-10*(cos(2*pi*x)+cos(2*pi*y));
 
 %% III. initialize population
-initPop = initializega(50,[0 9],'fitness');
+initPop = initializega(50,[-5,5;-5,5],'fitness');
 
 %% IV. call genetic algorithm
-[x endPop bpop trace] = gaot_ga([0 9],'fitness',[],initPop,[1e-6 1 1],'maxGenTerm',25,...
+[x endPop bpop trace] = gaot_ga([-5,5;-5,5],'fitness',[],initPop,[1e-6 1 1],'maxGenTerm',25,...
                            'normGeomSelect',0.08,'arithXover',2,'nonUnifMutation',[2 25 3]);
 
 
-%% V. 输出最优解并绘制最优点
+%% V. output the optimal solution found by gaot_ga
 x
-hold on
-plot (endPop(:,1),endPop(:,2),'ro')
 
-%% VI. 绘制迭代进化曲线
-figure(2)
+%% VI. convergence figure
 plot(trace(:,1),trace(:,3),'b:')
 hold on
 plot(trace(:,1),trace(:,2),'r-')
