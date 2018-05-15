@@ -78,7 +78,7 @@ bounds = ones(4,1)*[-10000 10000];
 
 %Now lets optimize
 %This may take some time...
-[x,endPop,bestSols,trace]=ga(bounds,'coranaMin');
+[x,endPop,bestSols,trace]=gaot_ga(bounds,'coranaMin');
 %Done!
 
 pause %Any key to continue

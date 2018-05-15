@@ -88,11 +88,11 @@ pause % Strike any key to continue
 clc
 %  We can now run the evolutionary procedure on this
 %  population.
-help ga
+help gaot_ga
 pause 					% Strike any key to continue
 
 % Now let's run the ga for one generation.
-[x endPop] = ga([0 9],'gademo1eval1',[],initPop,[1e-6 1 1],'maxGenTerm',1,...
+[x endPop] = gaot_ga([0 9],'gademo1eval1',[],initPop,[1e-6 1 1],'maxGenTerm',1,...
   'normGeomSelect',[0.08],['arithXover'],[2 0],'nonUnifMutation',[2 1 3]);
 
 x %The best found
@@ -101,7 +101,7 @@ plot (endPop(:,1),endPop(:,2),'ro')
 pause 					% Strike any key to continue
 
 % Now let's run the ga for 25 generations
-[x endPop] = ga([0 9],'gademo1eval1',[],initPop,[1e-6 1 1],'maxGenTerm',25,...
+[x endPop] = gaot_ga([0 9],'gademo1eval1',[],initPop,[1e-6 1 1],'maxGenTerm',25,...
   'normGeomSelect',[0.08],['arithXover'],[2],'nonUnifMutation',[2 25 3]);
 x %The best found
 % And plot the resulting the resulting population
