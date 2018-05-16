@@ -1,6 +1,5 @@
-function cost = CostCalculator(solution,data,alpha,punish)
+function cost = CostCalculator(solution,data,punish)
 
-pre_allocate=solution.allocation;
 Wsize=data.W_k;
 probability=data.probability;
 Rspace=data.Zeta_e;
@@ -11,31 +10,32 @@ access_router=data.access_router;
 graph=data.graph;
 edge_clouds=data.edge_cloud;
 server=data.server;
+alpha=data.alpha;
 
-NF=length(pre_allocate);
+NF=length(solution);
 cost=0;
 
-label=zeros(size(pre_allocate));
+label=zeros(size(solution));
 
 for ii=1:NF    
-    if pre_allocate(ii) == server
+    if solution(ii) == server
        label(ii)=1;
        continue
     end
     
-    Rspace(pre_allocate(ii))=Rspace(pre_allocate(ii))-Wsize(ii);
+    Rspace(solution(ii))=Rspace(solution(ii))-Wsize(ii);
     Rtotal=Rtotal-Wsize(ii);
       
-    utilization(pre_allocate(ii))=(Fullspace-Rspace(pre_allocate(ii)))/Fullspace;
+    utilization(solution(ii))=(Fullspace-Rspace(solution(ii)))/Fullspace;
 end
 
 for ii=1:NF
     if(label(ii)==0)
-        cache_cost=alpha/(1-utilization(pre_allocate(ii)));
+        cache_cost=alpha/(1-utilization(solution(ii)));
         
         cache_hit_cost=0;
         for jj=1:length(access_router)
-            [~,path_cost]=shortestpath(graph,access_router(jj),edge_clouds(pre_allocate(ii)));
+            [~,path_cost]=shortestpath(graph,access_router(jj),edge_clouds(solution(ii)));
             cache_hit_cost=cache_hit_cost+probability(ii,access_router(jj))*path_cost;
         end
         

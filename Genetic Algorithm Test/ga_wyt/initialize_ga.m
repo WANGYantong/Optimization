@@ -54,13 +54,13 @@ end
 if any(evalFN<48) %Not a .m file
     error('Error. \n Not a file name');
 else %A .m file
-    estr=['x=decoding_ga(pop{i,1});[x v]=' evalFN ...
-        '(x,[0 evalOps]); pop{i,1}=encoding_ga(x,size_mat);pop{i,2}=v;'];
+    estr=['x=decoding_ga(pop{ii,1});[x v]=' evalFN ...
+        '(x,[0 evalOps]); pop{ii,1}=encoding_ga(x,size_mat);pop{ii,2}=v;'];
 end
 
-% for ii=1:num
-%     eval(estr);
-% end
+for ii=1:num
+    eval(estr);
+end
 
 end
 

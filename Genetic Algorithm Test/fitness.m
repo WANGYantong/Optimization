@@ -1,8 +1,8 @@
 function [sol, fitnessVal] = fitness(sol, options)
 
-CostCalculator();
+global data;
 
-TimeCalculator();
+fitnessVal=NEC_mod(sol,data);
 
 end
 
