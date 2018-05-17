@@ -19,7 +19,7 @@ function [pop] = initialize_ga(num,evalFN,size_mat,evalOps,options,seed)
 % seed   - potentially good solutions, from other heuristic algorithm, such
 %          as greedy, or practices.
 %
-% MODIFIED BASED ON GAOT
+% Modified by WANG,Yantong
 
 %% input detector
 if nargin<5

@@ -24,6 +24,8 @@ function [c1,c2] = simpleXover_ga(p1,p2)
 % GNU General Public License for more details. A copy of the GNU 
 % General Public License can be obtained from the 
 % Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+%
+% Modified by WANG,Yantong
 
 % numVar = size(p1,2)-1; 			% Get the number of variables 
 numVar = size(p1,1);

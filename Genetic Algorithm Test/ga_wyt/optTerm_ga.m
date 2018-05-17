@@ -1,10 +1,13 @@
-function [parent] = binaryMut_ga(parent,pm)
-% Binary mutation changes each of the bits of the parent
-% based on the probability of mutation
+function [done,cnt] = optTerm_ga(ops,cnt,endPop)
+% function [done,cnt] = optTerm_ga(ops,cnt,endPop)
 %
-% function [newSol] = binaryMut_ga(parent,bounds,Ops)
-% parent  - the first parent ( [solution string function value] )
-% pm      - probability of mutation happens
+% Returns 1, i.e. terminates the GA, when either the maximal_generation is
+% reached or the performance hasn't changed in several generations.
+%
+% ops    - a vector of options [current_generation_number, optimal_solution,
+%          maximum_generation, maximum_cnt, epsilon]
+% cnt    - the current number for performance not changing
+% endPop - the current generation of solutions
 %
 % Binary and Real-Valued Simulation Evolution for Matlab 
 % Copyright (C) 1996 C.R. Houck, J.A. Joines, M.G. Kay 
@@ -27,25 +30,21 @@ function [parent] = binaryMut_ga(parent,pm)
 %
 % Modified by WANG,Yantong
 
-% pm=Ops(2);
-% numVar = size(parent,2)-1; 		% Get the number of variables 
-% % Pick a variable to mutate randomly from 1-number of vars
-% rN=rand(1,numVar)<pm;
-% parent=[abs(parent(1:numVar) - rN) parent(numVar+1)];
+currentGen = ops(1);
+optimal    = ops(2);
+maxGen     = ops(3);
+maxCnt     = ops(4);
+epsilon    = ops(5);
 
-if rand < pm    
-    
-    numRow = size(parent,1);
-    numCol = size(parent,2);
-    
-    rRow = randi([1,numRow]);
-    rCol = randi([1,numCol]);
-    
-    parent(rRow,:)=0;
-    parent(rRow,rCol) = 1;
-    
+fitIndex   = size(endPop,2);
+bestSolVal = min(cell2mat(endPop(:,fitIndex)));
+
+if (optimal-bestSolVal)<=epsilon
+    cnt=cnt+1;
+else
+    cnt=0;
 end
 
-end
+done       = (currentGen >= maxGen) | (cnt >= maxCnt);
 
-  
+end
