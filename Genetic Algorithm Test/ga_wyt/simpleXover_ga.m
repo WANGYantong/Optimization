@@ -28,6 +28,8 @@ function [c1,c2] = simpleXover_ga(p1,p2)
 % Modified by WANG,Yantong
 
 % numVar = size(p1,2)-1; 			% Get the number of variables 
+p1=p1{1};
+p2=p2{1};
 numVar = size(p1,1);
 % Pick a cut point randomly from 1-number of vars
 % cPoint = round(rand * (numVar-2)) + 1;

@@ -35,14 +35,14 @@ function [parent] = binaryMut_ga(parent,pm)
 
 if rand < pm    
     
-    numRow = size(parent,1);
-    numCol = size(parent,2);
+    numRow = size(parent{1,1},1);
+    numCol = size(parent{1,1},2);
     
     rRow = randi([1,numRow]);
     rCol = randi([1,numCol]);
     
-    parent(rRow,:)=0;
-    parent(rRow,rCol) = 1;
+    parent{1,1}(rRow,:)=0;
+    parent{1,1}(rRow,rCol) = 1;
     
 end
 

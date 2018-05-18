@@ -68,12 +68,20 @@ end
 if any(evalFN<48) %Not using a .m file
     error('Error. \n Not a file name');
 else %Are using a .m file
-    estr=['x=decoding_ga(endPop{ii,1});[x v]=' evalFN ...
-        '(x,[gen evalOps]); endPop{ii,1}=encoding_ga(x,size_mat);endPop{ii,2}=v;'];
+    e1str=['x=decoding_ga(c1{1,1});[x v]=' evalFN ...
+        '(x,[gen,evalOps]); c1{1,1}=encoding_ga(x,size_mat);c1{1,2}=v;'];
+    e2str=['x=decoding_ga(c2{1,1});[x v]=' evalFN ...
+        '(x,[gen,evalOps]); c2{1,1}=encoding_ga(x,size_mat);c2{1,2}=v;'];
 end
 
+size_mat     = size(startPop{1,1});
 xZomeLength  = size(startPop,2); 	%Length of the xzome
 popSize      = size(startPop,1); 	%Number of individuals in the pop
+
+if rem(popSize,2) ~= 0
+    error('Error. \n Do not support hoploid yet')
+end
+
 endPop       = cell(popSize,xZomeLength); %A secondary population cell array
 epsilon      = opts(1);                 %Threshold for two fittness to differ
 oval         = min(cell2mat(startPop(:,xZomeLength))); %Best value in start pop
@@ -82,11 +90,14 @@ done         = 0;                       %Done with simulated evolution
 gen          = 1; 			%Current Generation Number
 collectTrace = (nargout>3); 		%Should we collect info every gen
 display      = opts(2);                 %Display progress
+cnt          = 0;           %stable performance counter
+c1           = cell(1,xZomeLength);
+c2           = cell(1,xZomeLength);
 
 while(~done)
-    %Elitist Model
+    
     [bval,bindx] = min(cell2mat(startPop(:,xZomeLength))); %Best of current pop
-    best = startPop(bindx,:);
+    best =  startPop(bindx,:);
     
     if collectTrace
         traceInfo(gen,1)=gen; 		          %current generation
@@ -110,16 +121,66 @@ while(~done)
         end
     end
     
-    endPop = feval(selectFN,startPop,selectOps); %Select
+    % selection
+    endPop = feval(selectFN,startPop,selectOps);
     
-    % crossover and mutation
-    
-    if collectTrace
-        traceInfo(gen,1)=gen; 		%current generation
-        traceInfo(gen,2)=startPop(bindx,xZomeLength); %Best fittness
-        traceInfo(gen,3)=mean(startPop(:,xZomeLength)); %Avg fittness
+    % crossover
+    for ii=1:2:popSize
+        
+        [c1{1},c2{1}] = feval(xOverFN,endPop(ii,:),endPop(ii+1,:));
+        
+        if c1{1,1}==endPop{ii,1} %Make sure we created a new
+            c1{1,xZomeLength}=endPop{ii,xZomeLength}; %solution before evaluating
+        elseif c1{1,1}==endPop{ii+1,1}
+            c1{1,xZomeLength}=endPop{ii+1,xZomeLength};
+        else
+            eval(e1str);
+        end
+        if c2{1,1}==endPop{ii,1}
+            c2{1,xZomeLength}=endPop{ii,xZomeLength};
+        elseif c2{1,1}==endPop{ii+1,1}
+            c2{1,xZomeLength}=endPop{ii+1,xZomeLength};
+        else
+            eval(e2str);
+        end
+        endPop(ii,:)=c1;
+        endPop(ii+1,:)=c2;
     end
     
+    % mutation
+    for ii=1:popSize
+        c1 = feval(mutFN,endPop(ii,:),mutOps);
+        if c1{1,1}==endPop{ii,1}
+            c1{1,xZomeLength}=endPop{ii,xZomeLength};
+        else
+            eval(e1str);
+        end
+        endPop(ii,:)=c1;
+    end
+    
+    gen=gen+1;
+    
+    %termination
+    [done,cnt]=feval(termFN,[gen,oval,termOps],cnt,endPop);
+    
+    startPop=endPop; 			%Swap the populations
+    
+    [bval,bindx] = max((cell2mat(startPop(:,xZomeLength)))); %Keep the best solution
+    startPop(bindx,:) = best; 		%replace it with the worst
+end
+
+[bval,bindx] = min(cell2mat(startPop(:,xZomeLength)));
+if display
+    fprintf(1,'\n%d %f\n',gen,bval);
+end
+
+x=startPop(bindx,:);
+bPop(bFoundIn,:)={gen, startPop(bindx,:)};
+
+if collectTrace
+    traceInfo(gen,1)=gen; 		%current generation
+    traceInfo(gen,2)=startPop{bindx,xZomeLength}; %Best fittness
+    traceInfo(gen,3)=mean([startPop{:,xZomeLength}]); %Avg fittness
 end
 
 end

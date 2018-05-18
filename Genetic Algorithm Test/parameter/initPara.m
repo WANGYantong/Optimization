@@ -12,7 +12,7 @@ end
 %% generate analysis variables
 
 % each flow reprerents a mobile user
-flow=1:1:12;
+flow=1:1:20;
 NF=length(flow);
 % for stable, like rng
 NF_TOTAL=20;
@@ -88,7 +88,8 @@ data.C_l=1;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-data.delta=[50,50,100,100,100,100,150,150,150,150,100,100];
+data.delta=[50,50,100,100,100,100,150,150,150,150,100,100,...
+    50,50,100,100,100,100,150,150,150,150,100,100];
 
 % mobile user movement
 probability_ka=zeros(NF,length(data.targets));
