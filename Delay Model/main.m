@@ -1,28 +1,32 @@
 clear
 clc
 
+addpath(genpath(pwd));
 rng(1);
-%% construct network topology
+
+%% I. establish parameter
+
+%%%%%%%% construct network topology %%%%%%%%
 [G_full,vertice_names,edge_cloud,p]=GenerateGraph();
 N=length(vertice_names);
 for v=1:N
     eval([vertice_names{v},'=',num2str(v),';']);
 end
 
-%% generate analysis variables
+%%%%%%%% generate analysis variables %%%%%%%%
 
 % each flow reprerents a mobile user
-flow=1:1:12;
+flow=1:1:30;
 NF=length(flow);
 % for stable, like rng
-NF_TOTAL=20;
+NF_TOTAL=30;
 flow_parallel=cell(size(flow));
 for ii=1:NF
     flow_parallel{ii}=flow(1:ii);
 end
 
 % store result
-result=zeros(NF_TOTAL,30);
+result=zeros(NF_TOTAL,36);
 for ii=1:NF
     result(ii,1)=ii;
 end
@@ -32,7 +36,7 @@ alpha=10;
 % weight of QoS penalty
 penalty=20;
 
-%% generate simulation data structure
+%%%%%%%% generate simulation data structure %%%%%%%%
 data.server=[data_server];
 data.relay=[relay1,relay2,relay3,relay4,relay5,relay6,relay7,relay8,relay9,...
     relay10,relay11,relay12,relay13,relay14,relay15];
@@ -66,7 +70,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=5000;
+data.W_e=10000;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 
@@ -88,7 +92,8 @@ data.C_l=1;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-data.delta=[50,50,100,100,100,100,150,150,150,150,100,100];
+mid_array=[50,100,100,100,100,150,150,150,150,100];
+data.delta=repmat(mid_array,1,3);
 
 % mobile user movement
 probability_ka=zeros(NF,length(data.targets));
@@ -97,15 +102,15 @@ for ii=1:NF
 end
 data.probability=probability_ka;
 
-%% optimal solution
-buffer=zeros(NF,7);
-parfor ii=1:NF
-   buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty);
-end
+%% II. optimal solution
+% buffer=zeros(NF,7);
+% parfor ii=1:NF
+%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty);
+% end
+% 
+% result(1:NF,2:8)=buffer;
 
-result(1:NF,2:8)=buffer;
-
-%% heuristic solution
+%% III. heuristic solution
 
 % Nearest Edge Cloud Caching
 buffer=zeros(NF,6);
@@ -131,84 +136,93 @@ end
 
 result(1:NF,24:29)=buffer;
 
+% Genetic Algorithm Caching
+buffer=zeros(NF,6);
+parfor ii=1:NF
+   buffer(ii,:)=GAC(flow_parallel{ii},data,alpha,penalty);
+end
+
+result(1:NF,31:36)=buffer;
+
 %% result comparision
 cost_Nocache=result(1:NF,2);
 cost_MILP=result(1:NF,3);
 cost_NEC=result(1:NF,10);
 cost_GRD=result(1:NF,17);
 cost_RGR=result(1:NF,24);
+cost_GA=result(1:NF,31);
 cost_Monte_MILP=result(1:NF,7);
 cost_Monte_NEC=result(1:NF,14);
 cost_Monte_GRD=result(1:NF,21);
 cost_Monte_RGR=result(1:NF,28);
+cost_Monte_GA=result(1:NF,35);
 
 figure(1);
-plot(flow,cost_Nocache,'-o',flow,cost_MILP,':+',flow,cost_NEC,':*',...
-    flow,cost_GRD,':x',flow,cost_RGR,':s');
-title('cost');
+plot(flow,cost_Nocache,':o',flow,cost_MILP,'-+',flow,cost_NEC,'-*',...
+    flow,cost_GRD,'-x',flow,cost_RGR,'-s',flow,cost_GA,'-p',...
+    'LineWidth',1.6);
 xlabel('number of flows');
 ylabel('total cost');
-legend({'Nocache','PCDG','NEC','GRC','RGC'},'location','northwest');
+lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
+    'location','northwest');
+lgd.FontSize=12;
 
 figure(2);
 plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-+',flow,cost_Monte_NEC,'-*',...
-    flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s');
-title('Monte Carlo cost');
+    flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-p',...
+    'LineWidth',1.6);
 xlabel('number of flows');
-ylabel('total cost');
-legend({'Nocache','PCDG','NEC','GRC','RGC'},'location','northwest');
-
-figure(3);
-plot(flow,cost_MILP./cost_Nocache,':+',flow,cost_NEC./cost_Nocache,':*',...
-    flow,cost_GRD./cost_Nocache,':x',flow,cost_RGR./cost_Nocache,':s');
-title('cost gain');
-xlabel('number of flows');
-ylabel('cost gain');
-legend({'PCDG VS Nocache','NEC VS Nocache','GRD VS Nocache','RGR VS Nocache'},...
+ylabel('Monte Carlo cost');
+lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
-
-figure(4);
-plot(flow,cost_Monte_MILP./cost_Nocache,'-+',flow,cost_Monte_NEC./cost_Nocache,'-*',...
-    flow,cost_Monte_GRD./cost_Nocache,'-x',flow,cost_Monte_RGR./cost_Nocache,'-s');
-title('Monte Carlo cost gain');
-xlabel('number of flows');
-ylabel('cost gain');
-legend({'Monte_PCDG VS Nocache','Monte_NEC VS Nocache','Monte_GRD VS Nocache',...
-    'Monte_RGR VS Nocache'},'location','northwest');
+lgd.FontSize=12;
 
 outage_MILP=result(1:NF,5);
 outage_NEC=result(1:NF,12);
 outage_GRD=result(1:NF,19);
 outage_RGR=result(1:NF,26);
-outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR];
-figure(5);
+outage_GA=result(1:NF,33);
+outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR,outage_GA];
+figure(3);
 bar(outage,0.6);
-title('Outage');
 xlabel('number of flows');
 ylabel('outage number');
-legend({'PCDG','NEC','GRD','RGR'},'location','north');
+ylim([0,1.35]);
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
+lgd.FontSize=12;
 
 outage_Monte_MILP=result(1:NF,8)./result(1:NF,1);
 outage_Monte_NEC=result(1:NF,15)./result(1:NF,1);
 outage_Monte_GRD=result(1:NF,22)./result(1:NF,1);
 outage_Monte_RGR=result(1:NF,29)./result(1:NF,1);
-Monte_outage=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,1-outage_Monte_RGR];
-% outage_Monte_MILP=result(1:NF,8);
-% outage_Monte_NEC=result(1:NF,15);
-% outage_Monte_GRD=result(1:NF,22);
-% outage_Monte_RGR=result(1:NF,29);
-% Monte_outage=[outage_Monte_MILP,outage_Monte_NEC,outage_Monte_GRD,outage_Monte_RGR];
-figure(6);
-bar(Monte_outage);
-% title('Monte Carlo outage probability');
+outage_Monte_GA=result(1:NF,36)./result(1:NF,1);
+Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
+    1-outage_Monte_RGR,1-outage_Monte_GA];
+figure(4);
+bar(Monte_satis);
 xlabel('number of flows');
 ylabel('satisfied probability');
 ylim([0,1.35]);
-legend({'PCDG','NEC','GRC','RGC'},'location','north');
-applyhatch(gcf,'\/-x',[]);
+legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
+lgd.FontSize=12;
+% applyhatch(gcf,'\/-x+',[]);
 
+runtime_MILP=result(1:NF,6);
+runtime_NEC=result(1:NF,13);
+runtime_GRD=result(1:NF,20);
+runtime_RGR=result(1:NF,27);
+runtime_GA=result(1:NF,34);
+figure(5);
+plot(flow,runtime_MILP,'-+',flow,runtime_NEC,'-*',...
+    flow,runtime_GRD,'-x',flow,runtime_RGR,'-s',flow,runtime_GA,'-p',...
+    'LineWidth',1.6);
+xlabel('number of flows');
+ylabel('running time');
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
+    'location','northwest');
+lgd.FontSize=12;
 % export result as xlsx in Windows
-if ispc
-    filename='main.xlsx';
-    xlswrite(filename,result);
-end
+% if ispc
+%     filename='main.xlsx';
+%     xlswrite(filename,result);
+% end

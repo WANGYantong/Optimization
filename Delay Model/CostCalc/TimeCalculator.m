@@ -1,6 +1,10 @@
 function delay_time = TimeCalculator(solution,data)
 
-cache_allocate=solution.allocation;
+if isstruct(solution)
+    cache_allocate=solution.allocation;
+else
+    cache_allocate=solution;
+end
 path=data.path;
 R_k=data.R_k;
 C_l=data.C_l;

@@ -6,7 +6,12 @@ result=zeros(1,2);
 HARDCODE=1000;
 NF=length(flow);
 
-pre_allocate=solution.allocation;
+if isstruct(solution)
+    pre_allocate=solution.allocation;
+else
+    pre_allocate=solution;
+end
+
 Wsize=data.W_k;
 probability=data.probability;
 Rspace=data.Zeta_e;

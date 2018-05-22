@@ -12,10 +12,10 @@ end
 %% generate analysis variables
 
 % each flow reprerents a mobile user
-flow=1:1:20;
+flow=1:1:50;
 NF=length(flow);
 % for stable, like rng
-NF_TOTAL=20;
+NF_TOTAL=50;
 flow_parallel=cell(size(flow));
 for ii=1:NF
     flow_parallel{ii}=flow(1:ii);
@@ -66,7 +66,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=5000;
+data.W_e=5000*5;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 
@@ -88,8 +88,8 @@ data.C_l=1;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-data.delta=[50,50,100,100,100,100,150,150,150,150,100,100,...
-    50,50,100,100,100,100,150,150,150,150,100,100];
+mid_array=[50,100,100,100,100,150,150,150,150,100];
+data.delta=repmat(mid_array,1,5);
 
 % mobile user movement
 probability_ka=zeros(NF,length(data.targets));
