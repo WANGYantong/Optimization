@@ -72,11 +72,17 @@ beta_omega=repmat(beta_omega,[NF,1]);
 beta_omega=reshape(beta_omega,NF,m,n,l);
 beta_omega=permute(beta_omega,[2,1,3,4]);
 
-link_delay_constr=data.C_l*z-sum(sum(sum(R_komega.*omega.*beta_omega,2),3),4)>=1;
+C_lomega=data.C_l;
+C_lomega=repmat(C_lomega,[m,NF,n,l]);
+
+red_buff=sum(sum(sum(R_komega.*omega.*beta_omega,2),3),4);
+red_buff=repmat(red_buff,[1,NF,n,l]);
+
+link_delay_constr=C_lomega.*beta_omega.*omega-red_buff>=beta_omega.*pi_omega;
 
 %link_slack_constr
-% delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
-delta_link=data.delta*2/3;
+delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
+% delta_link=data.delta*2/3;
 link_slack_constr=sum(sum(sum(beta_omega.*omega,4),3),1)<=delta_link;
 
 %omega_define_constr
@@ -87,7 +93,8 @@ omega_define_constr3=omega>=M2*(pi_omega-1)+z_omega;
 
 %edge_delay_constr
 % in practice, use min() to replace the delta_edge not effect the result
-delta_edge=min(data.delta*1/3);
+% delta_edge=min(data.delta*1/3);
+delta_edge=min(data.delta-delta_link);
 lammax=GetMaxLambda(data.mu,data.ce,delta_edge);
 edge_delay_constr=sum(x,1)<=lammax;
 

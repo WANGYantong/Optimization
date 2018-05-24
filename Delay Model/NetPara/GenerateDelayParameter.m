@@ -8,9 +8,10 @@ R_k=ones(size(flow_stable))*0.03;
 
 % number of servers
 ce=zeros(size(edge_cloud));
-ce(1:6)=2;
-ce(8:10)=2*2;
-ce(7)=3;
+ce(1:4)=2;
+ce(5:6)=3;
+ce(9:10)=3;
+ce(7:8)=2*2;
 
 % each server service rate
 % assuming service rates for different flows are same

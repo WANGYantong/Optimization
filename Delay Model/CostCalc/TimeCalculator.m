@@ -1,21 +1,23 @@
-function delay_time = TimeCalculator(solution,data)
+function delay_time = TimeCalculator(solution,data,ops)
+
+if nargin<3
+    ops={0,[]};
+end
 
 if isstruct(solution)
     cache_allocate=solution.allocation;
 else
     cache_allocate=solution;
 end
-path=data.path;
-R_k=data.R_k;
-C_l=data.C_l;
+
+NF=length(cache_allocate);
+
 mu=data.mu;
 ce=data.ce;
 edge_clouds=data.edge_cloud;
 server=data.server;
 
-delay_link = GetWorstLinkDelay(C_l, R_k, path);
-
-NF=length(cache_allocate);
+delay_link = GetLinkDelay(cache_allocate,data,ops);
 
 lambda_e=zeros(size(edge_clouds));
 label=zeros(size(cache_allocate));
@@ -42,7 +44,7 @@ end
 
 delay_time=zeros(1,NF);
 for ii=1:NF
-    delay_time(ii) =delay_edge(cache_allocate(ii))+2*delay_link+100*label(ii);
+    delay_time(ii) =delay_edge(cache_allocate(ii))+delay_link(ii)+100*label(ii);
 end
 
 end

@@ -64,7 +64,8 @@ for ii=1:HARDCODE
             cost=cost+punish(jj);
         end
     end
-    delay_time = TimeCalculator(solution,data);
+    ops={1,ar};
+    delay_time = TimeCalculator(solution,data,ops);
     failed_number=0;
     total_cost=cost;
     for jj=1:NF

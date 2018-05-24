@@ -145,6 +145,25 @@ end
 result(1:NF,31:36)=buffer;
 
 %% result comparision
+
+% data structure of result
+% 1 index; 2 No_cache cost;
+%
+% 3  PCDG cost; 4 PCDG penalty; 5 PCDG failed number; 6 PCDG running time; 
+% 7  PCDG Monte Carlo Cost; 8 PCDG Monte Carlo failed number;
+% 9 
+% 10 NEC cost; 11 NEC penalty; 12 NEC failed number; 13 NEC running time; 
+% 14 NEC Monte Carlo Cost; 15 NEC Monte Carlo failed number;
+% 16 
+% 17 GRC cost; 18 GRC penalty; 19 GRC failed number; 20 GRC running time; 
+% 21 GRC Monte Carlo Cost; 22 GRC Monte Carlo failed number;
+% 23
+% 24 RGC cost; 25 RGC penalty; 26 RGC failed number; 27 RGC running time; 
+% 28 RGC Monte Carlo Cost; 29 RGC Monte Carlo failed number;
+% 30
+% 31 GAC cost; 32 GAC penalty; 33 GAC failed number; 34 GAC running time; 
+% 35 GAC Monte Carlo Cost; 36 GAC Monte Carlo failed number;
+
 cost_Nocache=result(1:NF,2);
 cost_MILP=result(1:NF,3);
 cost_NEC=result(1:NF,10);
@@ -177,25 +196,26 @@ lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
 lgd.FontSize=12;
 
-outage_MILP=result(1:NF,5);
-outage_NEC=result(1:NF,12);
-outage_GRD=result(1:NF,19);
-outage_RGR=result(1:NF,26);
-outage_GA=result(1:NF,33);
+outage_MILP=result(3:3:NF,5);
+outage_NEC=result(3:3:NF,12);
+outage_GRD=result(3:3:NF,19);
+outage_RGR=result(3:3:NF,26);
+outage_GA=result(3:3:NF,33);
 outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR,outage_GA];
 figure(3);
 bar(outage,0.6);
 xlabel('number of flows');
 ylabel('outage number');
-ylim([0,1.35]);
+% ylim([0,1.35]);
+set(gca,'xtick',[1:10],'xticklabel',{'3','6','9','12','15','18','21','24','27','30'});
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
 lgd.FontSize=12;
 
-outage_Monte_MILP=result(1:NF,8)./result(1:NF,1);
-outage_Monte_NEC=result(1:NF,15)./result(1:NF,1);
-outage_Monte_GRD=result(1:NF,22)./result(1:NF,1);
-outage_Monte_RGR=result(1:NF,29)./result(1:NF,1);
-outage_Monte_GA=result(1:NF,36)./result(1:NF,1);
+outage_Monte_MILP=result(3:3:NF,8)./result(3:3:NF,1);
+outage_Monte_NEC=result(3:3:NF,15)./result(3:3:NF,1);
+outage_Monte_GRD=result(3:3:NF,22)./result(3:3:NF,1);
+outage_Monte_RGR=result(3:3:NF,29)./result(3:3:NF,1);
+outage_Monte_GA=result(3:3:NF,36)./result(3:3:NF,1);
 Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
     1-outage_Monte_RGR,1-outage_Monte_GA];
 figure(4);
@@ -203,6 +223,7 @@ bar(Monte_satis);
 xlabel('number of flows');
 ylabel('satisfied probability');
 ylim([0,1.35]);
+set(gca,'xtick',[1:10],'xticklabel',{'3','6','9','12','15','18','21','24','27','30'});
 legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
 lgd.FontSize=12;
 % applyhatch(gcf,'\/-x+',[]);
