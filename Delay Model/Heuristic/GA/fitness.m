@@ -2,7 +2,7 @@ function [sol, fitnessVal] = fitness(sol, options)
 
 global data_buff;
 
-punish=log(max(data_buff.delta)+50-data_buff.delta)*200;
+punish=options{1};
 
 Wsize=data_buff.W_k;
 Rspace=data_buff.Zeta_e;

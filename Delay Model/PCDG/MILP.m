@@ -1,4 +1,4 @@
-function [result] = MILP(flow,data,alpha,penalty)
+function [result] = MILP(flow,data,alpha,penalty,punish)
 
 NF=length(flow);
 result=zeros(1,7);
@@ -8,6 +8,7 @@ data.W_k=data.W_k(1:NF);
 data.R_k=data.R_k(1:NF);
 data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);
+punish=punish(1:NF);
 
 %% decision variable
 x=optimvar('x',NF,length(data.edge_cloud),'Type','integer',...
@@ -112,8 +113,6 @@ w_pi=repmat(w_pi,[NF,1]);
 w_pi=reshape(w_pi,NF,m,n);
 
 objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
-
-punish=log(max(data.delta)+50-data.delta)*200;
 
 objfun3=(1-sum(sum(probability_pi.*pi,3),2)).*punish';
 

@@ -1,6 +1,4 @@
-function [fine, failed_number] = fitness_mod(sol, data, penalty)
-
-punish=log(max(data.delta)+50-data.delta)*200;
+function [fine, failed_number] = fitness_mod(sol, data, penalty,punish)
 
 Wsize=data.W_k;
 Rspace=data.Zeta_e;

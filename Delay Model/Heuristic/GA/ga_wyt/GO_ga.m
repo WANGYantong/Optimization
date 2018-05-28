@@ -13,7 +13,7 @@ function [x,endPop,bPop,traceInfo] = GO_ga(evalFN,evalOps,startPop,opts,...
 %
 % Input Arguments:
 %   evalFN       - the name of the evaluation .m function
-%   evalOps      - options to pass to the evaluation function ([NULL])
+%   evalOps      - options to pass to the evaluation function
 %   startPop     - a matrix of solutions that can be initialized
 %                  from initialize.m
 %   opts         - [epsilon display] change required to consider two
@@ -69,9 +69,9 @@ if any(evalFN<48) %Not using a .m file
     error('Error. \n Not a file name');
 else %Are using a .m file
     e1str=['x=decoding_ga(c1{1,1});[x v]=' evalFN ...
-        '(x,[gen,evalOps]); c1{1,1}=encoding_ga(x,size_mat);c1{1,2}=v;'];
+        '(x,evalOps); c1{1,1}=encoding_ga(x,size_mat);c1{1,2}=v;'];
     e2str=['x=decoding_ga(c2{1,1});[x v]=' evalFN ...
-        '(x,[gen,evalOps]); c2{1,1}=encoding_ga(x,size_mat);c2{1,2}=v;'];
+        '(x,evalOps); c2{1,1}=encoding_ga(x,size_mat);c2{1,2}=v;'];
 end
 
 size_mat     = size(startPop{1,1});
@@ -149,6 +149,8 @@ while(~done)
     
     % mutation
     for ii=1:popSize
+    
+%     ii=randi(popSize);
         c1 = feval(mutFN,endPop(ii,:),mutOps);
         if c1{1,1}==endPop{ii,1}
             c1{1,xZomeLength}=endPop{ii,xZomeLength};

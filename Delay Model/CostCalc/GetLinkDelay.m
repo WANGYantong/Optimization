@@ -42,6 +42,12 @@ pi_omega=repmat(pi_omega,[size(data.graph.Edges,1),1]);
 pi_omega=reshape(pi_omega,size(data.graph.Edges,1),m,n,l);
 
 diff_l=data.C_l-sum(sum(sum(R_komega.*beta_omega.*pi_omega,4),3),2);
+for ii=1:length(diff_l)
+    if diff_l(ii)<0
+        diff_l(ii)=0.9;
+    end
+end
+    
 diff_omega=repmat(diff_l,[1,NF,n,l]);
 
 link_delay=sum(sum(sum(beta_omega.*pi_omega./diff_omega,4),3),1);

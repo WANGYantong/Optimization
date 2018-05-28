@@ -1,4 +1,4 @@
-function result = GAC(flow,data,alpha,penalty)
+function result = GAC(flow,data,alpha,penalty,punish)
 %Genetic Algorithm
 %
 % encoding : binary array
@@ -18,9 +18,9 @@ data.W_k=data.W_k(1:NF);
 data.R_k=data.R_k(1:NF);
 data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);
+punish=punish(1:NF);
 
 num_ec=length(data.edge_cloud);
-punish=log(max(data.delta)+50-data.delta)*200;
 
 result=zeros(1,6);
 
@@ -28,8 +28,8 @@ data_buff=data;
 data_buff.alpha=alpha;
 data_buff.penalty=penalty;
 
-maxGen=100;
-maxCnt=10;
+maxGen=50;
+maxCnt=20;
 numTourn=10;
 ChampionPro=0.5;
 mutPro=0.05;  
@@ -40,16 +40,16 @@ sol_greed=solution.allocation;
 
 tic;
 %initialize population
-initPop = initialize_ga(sizePop,'fitness',[NF,num_ec],[],[1,0.2],sol_greed);
+initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,0.2],sol_greed);
     
 %call genetic algorithm
-[x,endPop,bpop,trace] = GO_ga('fitness',[],initPop,[1e-6,0],'optTerm_ga',[maxGen,maxCnt,1e-6],...
+[x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[1e-6,0],'optTerm_ga',[maxGen,maxCnt,1e-6],...
     'tournSelect_ga',[numTourn,ChampionPro],'simpleXover_ga',[],...
     'binaryMut_ga',[mutPro]);
 run_time=toc;
 
 vector=decoding_ga(x{1});
-[result(2),result(3)]=fitness_mod(vector,data,penalty);
+[result(2),result(3)]=fitness_mod(vector,data,penalty,punish);
 
 result(1)=x{2};
 result(4)=run_time;

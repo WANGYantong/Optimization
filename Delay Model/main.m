@@ -34,7 +34,7 @@ end
 % weight of cache cost
 alpha=10;
 % weight of QoS penalty
-penalty=20;
+penalty=40;
 
 %%%%%%%% generate simulation data structure %%%%%%%%
 data.server=[data_server];
@@ -70,7 +70,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=10000;
+data.W_e=8000;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 
@@ -92,7 +92,7 @@ data.C_l=1;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-mid_array=[50,100,100,100,100,150,150,150,150,100];
+mid_array=[50,50,50,100,100,100,100,150,150,150];
 data.delta=repmat(mid_array,1,3);
 
 % mobile user movement
@@ -102,10 +102,13 @@ for ii=1:NF
 end
 data.probability=probability_ka;
 
+% punish=log(max(data.delta)+50-data.delta)*200;
+punish=log(max(data.delta)+50-data.delta)*100;
+
 %% II. optimal solution
 % buffer=zeros(NF,7);
 % parfor ii=1:NF
-%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty);
+%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
 % end
 % 
 % result(1:NF,2:8)=buffer;
@@ -115,7 +118,7 @@ data.probability=probability_ka;
 % Nearest Edge Cloud Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=NEC(flow_parallel{ii},data,alpha,penalty);
+   buffer(ii,:)=NEC(flow_parallel{ii},data,alpha,penalty,punish);
 end
 
 result(1:NF,10:15)=buffer;
@@ -123,7 +126,7 @@ result(1:NF,10:15)=buffer;
 % Greedy Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=GRD(flow_parallel{ii},data,alpha,penalty);
+   buffer(ii,:)=GRD(flow_parallel{ii},data,alpha,penalty,punish);
 end
 
 result(1:NF,17:22)=buffer;
@@ -131,7 +134,7 @@ result(1:NF,17:22)=buffer;
 % Randomized Greedy Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=RGR(flow_parallel{ii},data,alpha,penalty);
+   buffer(ii,:)=RGR(flow_parallel{ii},data,alpha,penalty,punish);
 end
 
 result(1:NF,24:29)=buffer;
@@ -139,7 +142,7 @@ result(1:NF,24:29)=buffer;
 % Genetic Algorithm Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=GAC(flow_parallel{ii},data,alpha,penalty);
+   buffer(ii,:)=GAC(flow_parallel{ii},data,alpha,penalty,punish);
 end
 
 result(1:NF,31:36)=buffer;

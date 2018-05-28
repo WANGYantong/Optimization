@@ -1,4 +1,4 @@
-function result = GRD(flow,data,alpha,penalty)
+function result = GRD(flow,data,alpha,penalty,punish)
 
 NF=length(flow);
 
@@ -7,8 +7,8 @@ data.W_k=data.W_k(1:NF);
 data.R_k=data.R_k(1:NF);
 data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);
+punish=punish(1:NF);
 
-punish=log(max(data.delta)+50-data.delta)*200;
 result=zeros(1,6);
 
 tic;
