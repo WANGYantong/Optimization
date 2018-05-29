@@ -16,7 +16,8 @@ ce(7:8)=2*2;
 % each server service rate
 % assuming service rates for different flows are same
 % mu=poissrnd(1,1,length(edge_cloud))+1;
-mu=[1.5,1,1,1,1,1,1.5,1.5,1,1]+0.5;
+% mu=[1.5,1,1,1,1,1,1.5,1.5,1,1]+0.5;
+mu=[1.5,1,1,1,1,1,1.5,1.5,1,1];
 
 end
 

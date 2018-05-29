@@ -16,10 +16,10 @@ end
 %%%%%%%% generate analysis variables %%%%%%%%
 
 % each flow reprerents a mobile user
-flow=1:1:30;
+flow=1:1:20;
 NF=length(flow);
 % for stable, like rng
-NF_TOTAL=30;
+NF_TOTAL=20;
 flow_parallel=cell(size(flow));
 for ii=1:NF
     flow_parallel{ii}=flow(1:ii);
@@ -45,6 +45,9 @@ data.access_router=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
 data.router=[router1,router2,router3,router4,router5,router6,router7,router8];
 data.edge_cloud=edge_cloud;
 
+% idx=[data.router,data.access_router];
+% G_sub=subgraph(G_full,idx);
+% data.graph=G_sub;
 data.graph=G_full;
 data.targets=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
 
@@ -70,7 +73,7 @@ data.W_k=W_k(1:NF);
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=8000;
+data.W_e=8500;
 data.Zeta_e=ones(size(edge_cloud))*data.W_e;
 data.Zeta_e=data.Zeta_e.*(1-data.utilization);
 
@@ -93,7 +96,7 @@ data.C_l=1;
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
 mid_array=[50,50,50,100,100,100,100,150,150,150];
-data.delta=repmat(mid_array,1,3);
+data.delta=repmat(mid_array,1,2);
 
 % mobile user movement
 probability_ka=zeros(NF,length(data.targets));
@@ -102,16 +105,16 @@ for ii=1:NF
 end
 data.probability=probability_ka;
 
-% punish=log(max(data.delta)+50-data.delta)*200;
-punish=log(max(data.delta)+50-data.delta)*100;
+punish=log(max(data.delta)+50-data.delta)*200;
+% punish=log(max(data.delta)+50-data.delta)*100;
 
 %% II. optimal solution
-% buffer=zeros(NF,7);
-% parfor ii=1:NF
-%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
-% end
-% 
-% result(1:NF,2:8)=buffer;
+buffer=zeros(NF,7);
+parfor ii=1:NF
+   buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
+end
+
+result(1:NF,2:8)=buffer;
 
 %% III. heuristic solution
 
@@ -199,26 +202,26 @@ lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
 lgd.FontSize=12;
 
-outage_MILP=result(3:3:NF,5);
-outage_NEC=result(3:3:NF,12);
-outage_GRD=result(3:3:NF,19);
-outage_RGR=result(3:3:NF,26);
-outage_GA=result(3:3:NF,33);
+outage_MILP=result(2:2:NF,5);
+outage_NEC=result(2:2:NF,12);
+outage_GRD=result(2:2:NF,19);
+outage_RGR=result(2:2:NF,26);
+outage_GA=result(2:2:NF,33);
 outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR,outage_GA];
 figure(3);
 bar(outage,0.6);
 xlabel('number of flows');
 ylabel('outage number');
 % ylim([0,1.35]);
-set(gca,'xtick',[1:10],'xticklabel',{'3','6','9','12','15','18','21','24','27','30'});
+set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
 lgd.FontSize=12;
 
-outage_Monte_MILP=result(3:3:NF,8)./result(3:3:NF,1);
-outage_Monte_NEC=result(3:3:NF,15)./result(3:3:NF,1);
-outage_Monte_GRD=result(3:3:NF,22)./result(3:3:NF,1);
-outage_Monte_RGR=result(3:3:NF,29)./result(3:3:NF,1);
-outage_Monte_GA=result(3:3:NF,36)./result(3:3:NF,1);
+outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
+outage_Monte_NEC=result(2:2:NF,15)./result(2:2:NF,1);
+outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
+outage_Monte_RGR=result(2:2:NF,29)./result(2:2:NF,1);
+outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
 Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
     1-outage_Monte_RGR,1-outage_Monte_GA];
 figure(4);
@@ -226,7 +229,7 @@ bar(Monte_satis);
 xlabel('number of flows');
 ylabel('satisfied probability');
 ylim([0,1.35]);
-set(gca,'xtick',[1:10],'xticklabel',{'3','6','9','12','15','18','21','24','27','30'});
+set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
 legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
 lgd.FontSize=12;
 % applyhatch(gcf,'\/-x+',[]);
@@ -245,6 +248,7 @@ ylabel('running time');
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
 lgd.FontSize=12;
+
 % export result as xlsx in Windows
 % if ispc
 %     filename='main.xlsx';

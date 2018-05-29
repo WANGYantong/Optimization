@@ -28,11 +28,12 @@ data_buff=data;
 data_buff.alpha=alpha;
 data_buff.penalty=penalty;
 
-maxGen=50;
-maxCnt=20;
+maxGen=100;
+maxCnt=10;
 numTourn=10;
 ChampionPro=0.5;
 mutPro=0.05;  
+% mutPro=0.15;  
 sizePop=ceil(NF/5)*10;
 
 solution=Greedy(flow,data,alpha,punish);

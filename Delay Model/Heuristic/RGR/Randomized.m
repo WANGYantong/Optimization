@@ -15,9 +15,9 @@ time_delay_ori = TimeCalculator(solution,data);
 cache_node = solution.allocation;
 total_cost = solution.total_cost;
 
-if(time_delay_ori <= delta)
-    TIMES_HARDCODE = 10;
-end
+% if(time_delay_ori <= delta)
+%     TIMES_HARDCODE = 10;
+% end
 
 for ii = 1:TIMES_HARDCODE
     flow = randi(length(Flows));
@@ -26,10 +26,10 @@ for ii = 1:TIMES_HARDCODE
     
     legal_flag = check_space(solution.allocation,Wsize,Rspace,Rtotal);
     
-    if(legal_flag == 1)
-        pre_cost = CostCalculator(solution,data,alpha,punish);
-        time_delay_pre = TimeCalculator(solution,data);
-        
+    %     if(legal_flag == 1)
+    pre_cost = CostCalculator(solution,data,alpha,punish);
+    time_delay_pre = TimeCalculator(solution,data);
+    if(legal_flag == 1)  % make runing time trend increasing
         if all(time_delay_pre <= delta)
             if any(time_delay_ori > delta) || ...
                     (all(time_delay_ori <= delta) && all(pre_cost < total_cost))
@@ -37,14 +37,14 @@ for ii = 1:TIMES_HARDCODE
                 total_cost = pre_cost;
                 solution.allocation=cache_node;
                 solution.total_cost=total_cost;
-                return
+                %                 return
             end
         else
             if (sum(time_delay_ori <= delta) < sum(time_delay_pre <= delta)) ...
-                    && (sum(pre_cost) <= sum(total_cost)) 
+                    && (sum(pre_cost) <= sum(total_cost))
                 cache_node = solution.allocation;
                 total_cost = pre_cost;
-%                 time_delay_ori = time_flag_pre;
+                %                 time_delay_ori = time_flag_pre;
             end
         end
     end
