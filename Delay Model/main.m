@@ -183,8 +183,8 @@ cost_Monte_RGR=result(1:NF,28);
 cost_Monte_GA=result(1:NF,35);
 
 figure(1);
-plot(flow,cost_Nocache,':o',flow,cost_MILP,'-+',flow,cost_NEC,'-*',...
-    flow,cost_GRD,'-x',flow,cost_RGR,'-s',flow,cost_GA,'-p',...
+plot(flow,cost_Nocache,':o',flow,cost_MILP,'-p',flow,cost_NEC,'-*',...
+    flow,cost_GRD,'-x',flow,cost_RGR,'-s',flow,cost_GA,'-+',...
     'LineWidth',1.6);
 xlabel('number of flows');
 ylabel('total cost');
@@ -193,8 +193,8 @@ lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
 lgd.FontSize=12;
 
 figure(2);
-plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-+',flow,cost_Monte_NEC,'-*',...
-    flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-p',...
+plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-p',flow,cost_Monte_NEC,'-*',...
+    flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-+',...
     'LineWidth',1.6);
 xlabel('number of flows');
 ylabel('Monte Carlo cost');
@@ -214,7 +214,7 @@ xlabel('number of flows');
 ylabel('outage number');
 % ylim([0,1.35]);
 set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
 lgd.FontSize=12;
 
 outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
@@ -228,9 +228,9 @@ figure(4);
 bar(Monte_satis);
 xlabel('number of flows');
 ylabel('satisfied probability');
-ylim([0,1.35]);
+ylim([0,1.5]);
 set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
-legend({'PCDG','NEC','GRC','RGC','GAC'},'location','north');
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
 lgd.FontSize=12;
 % applyhatch(gcf,'\/-x+',[]);
 
@@ -240,8 +240,8 @@ runtime_GRD=result(1:NF,20);
 runtime_RGR=result(1:NF,27);
 runtime_GA=result(1:NF,34);
 figure(5);
-plot(flow,runtime_MILP,'-+',flow,runtime_NEC,'-*',...
-    flow,runtime_GRD,'-x',flow,runtime_RGR,'-s',flow,runtime_GA,'-p',...
+plot(flow,runtime_MILP,'-p',flow,runtime_NEC,'-*',...
+    flow,runtime_GRD,'-x',flow,runtime_RGR,'-s',flow,runtime_GA,'-+',...
     'LineWidth',1.6);
 xlabel('number of flows');
 ylabel('running time');
@@ -250,7 +250,18 @@ lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
 lgd.FontSize=12;
 
 % export result as xlsx in Windows
-% if ispc
-%     filename='main.xlsx';
-%     xlswrite(filename,result);
-% end
+if ispc
+    filename='OutPut\main.xlsx';
+    xlswrite(filename,result);
+end
+
+% ec_congestion=xlsread('OutPut\ec_congestion.xlsx');
+% boxplot(ec_congestion,'Labels',{'NEC','GRC','RGC','GAC','PCDG'});
+% title('Edge Cloud Congestion after Caching Assignment (flow=20)');
+% xlabel('Method');
+% ylabel('Utilization');
+% link_congestion=xlsread('OutPut\link_congestion.xlsx');
+% boxplot(link_congestion,'Labels',{'NEC','GRC','RGC','GAC','PCDG'});
+% title('Link Congestion after Caching Assignment (flow=20)');
+% xlabel('Method');
+% ylabel('Utilization');
