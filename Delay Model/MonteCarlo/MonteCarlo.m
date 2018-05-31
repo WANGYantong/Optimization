@@ -74,7 +74,7 @@ for ii=1:HARDCODE
             failed_number=failed_number+1;
         end
     end
-    
+
     total_cost_add=total_cost_add+total_cost;
     total_failed_number=total_failed_number+failed_number;
 end

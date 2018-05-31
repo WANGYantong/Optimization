@@ -27,9 +27,11 @@ for ii = 1:TIMES_HARDCODE
     legal_flag = check_space(solution.allocation,Wsize,Rspace,Rtotal);
     
     %     if(legal_flag == 1)
-    pre_cost = CostCalculator(solution,data,alpha,punish);
-    time_delay_pre = TimeCalculator(solution,data);
+    pre_cost_mid = CostCalculator(solution,data,alpha,punish);
+    time_delay_pre_mid = TimeCalculator(solution,data);
     if(legal_flag == 1)  % make runing time trend increasing
+        pre_cost=pre_cost_mid;
+        time_delay_pre=time_delay_pre_mid;
         if all(time_delay_pre <= delta)
             if any(time_delay_ori > delta) || ...
                     (all(time_delay_ori <= delta) && all(pre_cost < total_cost))

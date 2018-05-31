@@ -109,12 +109,12 @@ punish=log(max(data.delta)+50-data.delta)*200;
 % punish=log(max(data.delta)+50-data.delta)*100;
 
 %% II. optimal solution
-buffer=zeros(NF,7);
-parfor ii=1:NF
-   buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
-end
-
-result(1:NF,2:8)=buffer;
+% buffer=zeros(NF,7);
+% parfor ii=1:NF
+%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
+% end
+% 
+% result(1:NF,2:8)=buffer;
 
 %% III. heuristic solution
 
@@ -250,10 +250,10 @@ lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
 lgd.FontSize=12;
 
 % export result as xlsx in Windows
-if ispc
-    filename='OutPut\main.xlsx';
-    xlswrite(filename,result);
-end
+% if ispc
+%     filename='OutPut\main.xlsx';
+%     xlswrite(filename,result);
+% end
 
 % ec_congestion=xlsread('OutPut\ec_congestion.xlsx');
 % boxplot(ec_congestion,'Labels',{'NEC','GRC','RGC','GAC','PCDG'});
