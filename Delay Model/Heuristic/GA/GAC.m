@@ -28,7 +28,7 @@ data_buff=data;
 data_buff.alpha=alpha;
 data_buff.penalty=penalty;
 
-maxGen=100;
+maxGen=50;
 maxCnt=10;
 numTourn=10;
 ChampionPro=0.5;

@@ -30,6 +30,11 @@ for ii=1:HARDCODE
     % for each flow/mobile user
     ar=zeros(1,NF);
     label=zeros(size(pre_allocate));
+    
+    Rspace_buff=Rspace;
+    Rtotal_buff=Rtotal;
+    utilization_buff=utilization;
+    
     for jj=1:NF
         % the connect access router for flow jj
         test=rand;
@@ -45,14 +50,14 @@ for ii=1:HARDCODE
             label(jj)=1;
             continue
         end       
-        Rspace(pre_allocate(jj))=Rspace(pre_allocate(jj))-Wsize(jj);
-        Rtotal=Rtotal-Wsize(jj);      
-        utilization(pre_allocate(jj))=(Fullspace-Rspace(pre_allocate(jj)))/Fullspace;
+        Rspace_buff(pre_allocate(jj))=Rspace_buff(pre_allocate(jj))-Wsize(jj);
+        Rtotal_buff=Rtotal_buff-Wsize(jj);      
+        utilization_buff(pre_allocate(jj))=(Fullspace-Rspace_buff(pre_allocate(jj)))/Fullspace;
     end
     cost=0;
     for jj=1:NF
         if(label(jj)==0)
-            cache_cost=alpha/(1-utilization(pre_allocate(jj)));
+            cache_cost=alpha/(1-utilization_buff(pre_allocate(jj)));
             
             cache_hit_cost=0;
             [~,path_cost]=shortestpath(graph,ar(jj),edge_clouds(pre_allocate(jj)));

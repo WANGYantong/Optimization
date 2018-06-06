@@ -109,12 +109,12 @@ punish=log(max(data.delta)+50-data.delta)*200;
 % punish=log(max(data.delta)+50-data.delta)*100;
 
 %% II. optimal solution
-% buffer=zeros(NF,7);
-% parfor ii=1:NF
-%    buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
-% end
-% 
-% result(1:NF,2:8)=buffer;
+buffer=zeros(NF,7);
+parfor ii=1:NF
+   buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
+end
+
+result(1:NF,2:8)=buffer;
 
 %% III. heuristic solution
 

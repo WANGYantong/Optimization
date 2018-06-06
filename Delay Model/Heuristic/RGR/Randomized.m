@@ -34,11 +34,10 @@ for ii = 1:TIMES_HARDCODE
         time_delay_pre=time_delay_pre_mid;
         if all(time_delay_pre <= delta)
             if any(time_delay_ori > delta) || ...
-                    (all(time_delay_ori <= delta) && all(pre_cost < total_cost))
+                    (all(time_delay_ori <= delta) &&  (sum(pre_cost) <= sum(total_cost)))
                 cache_node = solution.allocation;
                 total_cost = pre_cost;
-                solution.allocation=cache_node;
-                solution.total_cost=total_cost;
+                time_delay_ori = time_delay_pre;
                 %                 return
             end
         else
@@ -46,7 +45,7 @@ for ii = 1:TIMES_HARDCODE
                     && (sum(pre_cost) <= sum(total_cost))
                 cache_node = solution.allocation;
                 total_cost = pre_cost;
-                %                 time_delay_ori = time_flag_pre;
+                time_delay_ori = time_delay_pre;
             end
         end
     end
