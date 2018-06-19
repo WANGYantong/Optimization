@@ -28,7 +28,7 @@ data_buff=data;
 data_buff.alpha=alpha;
 data_buff.penalty=penalty;
 
-maxGen=50;
+maxGen=100;
 maxCnt=10;
 numTourn=10;
 ChampionPro=0.5;
@@ -44,8 +44,8 @@ tic;
 initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,0.2],sol_greed);
     
 %call genetic algorithm
-[x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[1e-6,0],'optTerm_ga',[maxGen,maxCnt,1e-6],...
-    'tournSelect_ga',[numTourn,ChampionPro],'simpleXover_ga',[],...
+[x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[1e-6,1],'optTerm_ga',[maxGen,maxCnt,1e-6],...
+    'tournSelect_ga',[numTourn,ChampionPro],'shuffleXover_ga',[1],...
     'binaryMut_ga',[mutPro]);
 run_time=toc;
 

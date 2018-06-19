@@ -127,8 +127,8 @@ while(~done)
     % crossover
     for ii=1:2:popSize
         
-        [c1{1},c2{1}] = feval(xOverFN,endPop(ii,:),endPop(ii+1,:));
-        
+        [c1{1},c2{1}] = feval(xOverFN,endPop(ii,:),endPop(ii+1,:),xOverOps);
+
         if c1{1,1}==endPop{ii,1} %Make sure we created a new
             c1{1,xZomeLength}=endPop{ii,xZomeLength}; %solution before evaluating
         elseif c1{1,1}==endPop{ii+1,1}

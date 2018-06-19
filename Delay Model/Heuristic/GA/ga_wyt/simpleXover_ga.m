@@ -1,4 +1,4 @@
-function [c1,c2] = simpleXover_ga(p1,p2)
+function [c1,c2] = simpleXover_ga(p1,p2,~)
 % Simple crossover takes two parents P1,P2 and performs simple single point
 % crossover.  
 %
