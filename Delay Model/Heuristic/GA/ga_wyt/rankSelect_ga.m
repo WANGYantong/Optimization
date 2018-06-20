@@ -1,8 +1,8 @@
-function [newPop] = rouletteSelect_ga(oldPop,~)
-%roulette is the traditional selection function with the probability of
-%surviving equal to the fittness of inv / sum(inv) of the fittness of all individuals
+function [newPop] = rankSelect_ga(oldPop,~)
+%rank select is based on hte roulette selection, but reassign the weight
+%depends on the fitness value ranking. The weight is used as the probability to select. 
 %
-%function[newPop] = rouletteSelect_ga(oldPop,options)
+%function[newPop] = rankSelect_ga(oldPop,options)
 %newPop  - the new population selected from the oldPop
 %oldPop  - the current population
 %options - options [gen]
@@ -11,9 +11,13 @@ function [newPop] = rouletteSelect_ga(oldPop,~)
 numVars = size(oldPop,2);
 numSols = size(oldPop,1);
 
+oldPop = sortrows(oldPop,2);
 %Generate the relative probabilites of selection
-totalFit = sum(1./[oldPop{:,numVars}]);
-prob=(1./[oldPop{:,numVars}]) / totalFit; 
+% the weight here is set as the reverse ranking, i.e. the last one is 1,
+% the second last is 2, etc.
+prob = [numSols:-1:1]; 
+totalFit = sum(prob);
+prob=prob / totalFit; 
 prob=cumsum(prob);
 
 rNums=sort(rand(numSols,1)); 		%Generate random numbers
@@ -31,4 +35,3 @@ while newIn<=numSols
   end
 end
 end
-

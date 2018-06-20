@@ -30,10 +30,9 @@ data_buff.penalty=penalty;
 
 maxGen=100;
 maxCnt=10;
-numTourn=10;
-ChampionPro=0.5;
+% numTourn=10;
+% ChampionPro=0.5;
 mutPro=0.05;  
-% mutPro=0.15;  
 sizePop=ceil(NF/5)*10;
 
 solution=Greedy(flow,data,alpha,punish);
@@ -45,7 +44,7 @@ initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,0.2],sol_greed
     
 %call genetic algorithm
 [x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[1e-6,1],'optTerm_ga',[maxGen,maxCnt,1e-6],...
-    'tournSelect_ga',[numTourn,ChampionPro],'shuffleXover_ga',[1],...
+    'rankSelect_ga',[],'shuffleXover_ga',[1],...
     'binaryMut_ga',[mutPro]);
 run_time=toc;
 
