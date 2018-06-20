@@ -32,8 +32,10 @@ maxGen=100;
 maxCnt=10;
 % numTourn=10;
 % ChampionPro=0.5;
-mutPro=0.05;  
+likelihoodMut=0.05;  
 sizePop=ceil(NF/5)*10;
+likelihoodXover=0.1;
+shuffleType=1;
 
 solution=Greedy(flow,data,alpha,punish);
 sol_greed=solution.allocation;
@@ -44,8 +46,8 @@ initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,0.2],sol_greed
     
 %call genetic algorithm
 [x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[1e-6,1],'optTerm_ga',[maxGen,maxCnt,1e-6],...
-    'rankSelect_ga',[],'shuffleXover_ga',[1],...
-    'binaryMut_ga',[mutPro]);
+    'rankSelect_ga',[],'shuffleXover_ga',[likelihoodXover,shuffleType],...
+    'binaryMut_ga',[likelihoodMut]);
 run_time=toc;
 
 vector=decoding_ga(x{1});

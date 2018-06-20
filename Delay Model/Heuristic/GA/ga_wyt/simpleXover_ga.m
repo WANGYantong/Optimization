@@ -1,4 +1,4 @@
-function [c1,c2] = simpleXover_ga(p1,p2,~)
+function [c1,c2] = simpleXover_ga(p1,p2,opts)
 % Simple crossover takes two parents P1,P2 and performs simple single point
 % crossover.  
 %
@@ -33,11 +33,10 @@ p2=p2{1};
 numVar = size(p1,1);
 % Pick a cut point randomly from 1-number of vars
 % cPoint = round(rand * (numVar-2)) + 1;
-cPoint = randi([1,numVar]);
-
-% c1 = [p1(1:cPoint) p2(cPoint+1:numVar+1)]; % Create the children
-% c2 = [p2(1:cPoint) p1(cPoint+1:numVar+1)];
-if cPoint < numVar
+if rand<opts(1)
+    
+    cPoint = randi([1,numVar-1]);
+    
     c1=[p1(1:cPoint,:);p2(cPoint+1:numVar,:)];
     c2=[p2(1:cPoint,:);p1(cPoint+1:numVar,:)];
 else
