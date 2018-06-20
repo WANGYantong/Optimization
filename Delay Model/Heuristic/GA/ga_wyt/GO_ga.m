@@ -16,9 +16,9 @@ function [x,endPop,bPop,traceInfo] = GO_ga(evalFN,evalOps,startPop,opts,...
 %   evalOps      - options to pass to the evaluation function
 %   startPop     - a matrix of solutions that can be initialized
 %                  from initialize.m
-%   opts         - [epsilon display] change required to consider two
+%   opts         - [epsilon,display,gengap] change required to consider two
 %                  solutions different and display is 1 to output progress 0 for
-%                  quiet. ([1e-6 0])
+%                  quiet. gengap is generation gap([1e-6, 0,0.8])
 %   termFN       - name of the .m termination function
 %   termOps      - options string to be passed to the termination function
 %   selectFN     - name of the .m selection function
@@ -90,14 +90,17 @@ done         = 0;                       %Done with simulated evolution
 gen          = 1; 			%Current Generation Number
 collectTrace = (nargout>3); 		%Should we collect info every gen
 display      = opts(2);                 %Display progress
+gengap     = opts(3);
+repNum    = round(popSize*(1-gengap));
 cnt          = 0;           %stable performance counter
 c1           = cell(1,xZomeLength);
 c2           = cell(1,xZomeLength);
 
 while(~done)
     
-    [bval,bindx] = min(cell2mat(startPop(:,xZomeLength))); %Best of current pop
-    best =  startPop(bindx,:);
+    [bval,bindx] = sort(cell2mat(startPop(:,xZomeLength))); %Best of current pop
+    bval = bval(1); 
+    best =  startPop(bindx(1:repNum),:);
     
     if collectTrace
         traceInfo(gen,1)=gen; 		          %current generation
@@ -167,8 +170,8 @@ while(~done)
     
     startPop=endPop; 			%Swap the populations
     
-    [bval,bindx] = max((cell2mat(startPop(:,xZomeLength)))); %Keep the best solution
-    startPop(bindx,:) = best; 		%replace it with the worst
+    [~,bindx] = sort((cell2mat(startPop(:,xZomeLength))),'descend'); %Keep the best solution
+    startPop(bindx(1:repNum),:) = best; 		%replace it with the worst
 end
 
 [bval,bindx] = min(cell2mat(startPop(:,xZomeLength)));

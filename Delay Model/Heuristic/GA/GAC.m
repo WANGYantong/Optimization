@@ -28,14 +28,27 @@ data_buff=data;
 data_buff.alpha=alpha;
 data_buff.penalty=penalty;
 
+% termination parameter
 maxGen=100;
 maxCnt=10;
-% numTourn=10;
-% ChampionPro=0.5;
-likelihoodMut=0.05;  
-sizePop=ceil(NF/5)*10;
-likelihoodXover=0.1;
+epsilonTer=1e-6;
+
+% selection parameter
+numTourn=10;
+ChampionPro=0.5;
+
+% Xover and mutation parameter
 shuffleType=1;
+likelihoodXover=0.95;
+likelihoodMut=0.05; 
+
+% population size
+sizePop=ceil(NF/5)*10;
+
+% GA parameter
+epsilon=1e-6;
+display=1;
+gengap=0.8;
 
 solution=Greedy(flow,data,alpha,punish);
 sol_greed=solution.allocation;
@@ -45,8 +58,9 @@ tic;
 initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,0.2],sol_greed);
     
 %call genetic algorithm
-[x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[1e-6,1],'optTerm_ga',[maxGen,maxCnt,1e-6],...
-    'rankSelect_ga',[],'shuffleXover_ga',[likelihoodXover,shuffleType],...
+[x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[epsilon,display,gengap],...
+    'optTerm_ga',[maxGen,maxCnt,epsilonTer],...
+    'tournSelect_ga',[numTourn,ChampionPro],'shuffleXover_ga',[likelihoodXover,shuffleType],...
     'binaryMut_ga',[likelihoodMut]);
 run_time=toc;
 
@@ -64,8 +78,6 @@ result(1,5:6)=buff;
 %     plot(trace(:,1),trace(:,2),'r-','LineWidth',1)
 %     xlabel('Generation'); ylabel('Fittness');
 %     legend('Mean Fitness', 'Best Fitness')
-
-
 
 % figure(1);
 % bar(value(:,1));
