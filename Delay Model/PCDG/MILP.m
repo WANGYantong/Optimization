@@ -127,7 +127,7 @@ ProCache.Constraints.y_define_constr2=y_define_constr2;
 ProCache.Constraints.y_define_constr3=y_define_constr3;
 ProCache.Constraints.pi_define_constr1=pi_define_constr1;
 ProCache.Constraints.pi_define_constr2=pi_define_constr2;
-ProCache.Constraints.link_delay_constr=link_delay_constr;
+% ProCache.Constraints.link_delay_constr=link_delay_constr;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
@@ -136,7 +136,7 @@ ProCache.Constraints.edge_delay_constr=edge_delay_constr;
 
 %% solve the problem using MILP
 
-opts=optimoptions('intlinprog','Display','off');
+opts=optimoptions('intlinprog','Display','off','MaxTime',36000);
 
 % timer for MILP
 tic;

@@ -10,7 +10,7 @@ if ops{1}==0 % not determine the access router
         if assignment(ii)==data.server
             continue;
         end
-        for jj=1:3
+        for jj=1:2
             [~,index]=max(probability(ii,:));
             pi(ii,index,assignment(ii))=1;
             probability(ii,index)=0;
@@ -44,7 +44,7 @@ pi_omega=reshape(pi_omega,size(data.graph.Edges,1),m,n,l);
 diff_l=data.C_l-sum(sum(sum(R_komega.*beta_omega.*pi_omega,4),3),2);
 for ii=1:length(diff_l)
     if diff_l(ii)<0
-        diff_l(ii)=0.9;
+        diff_l(ii)=0.99;
     end
 end
     

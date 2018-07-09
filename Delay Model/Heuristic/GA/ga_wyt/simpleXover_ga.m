@@ -33,7 +33,7 @@ p2=p2{1};
 numVar = size(p1,1);
 % Pick a cut point randomly from 1-number of vars
 % cPoint = round(rand * (numVar-2)) + 1;
-if rand<opts(1)
+if (numVar>1) && (rand<opts(1))
     
     cPoint = randi([1,numVar-1]);
     

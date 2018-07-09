@@ -16,7 +16,7 @@ end
 %%%%%%%% generate analysis variables %%%%%%%%
 
 % each flow reprerents a mobile user
-flow=1:1:20;
+flow=1:1:10;
 NF=length(flow);
 % for stable, like rng
 NF_TOTAL=20;
@@ -34,7 +34,7 @@ end
 % weight of cache cost
 alpha=10;
 % weight of QoS penalty
-penalty=40;
+penalty=20;
 
 %%%%%%%% generate simulation data structure %%%%%%%%
 data.server=[data_server];
@@ -201,6 +201,7 @@ ylabel('Monte Carlo cost');
 lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
 lgd.FontSize=12;
+grid on;
 
 outage_MILP=result(2:2:NF,5);
 outage_NEC=result(2:2:NF,12);

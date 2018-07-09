@@ -29,33 +29,35 @@ data_buff.alpha=alpha;
 data_buff.penalty=penalty;
 
 % termination parameter
-maxGen=100;
+maxGen=50;
 maxCnt=10;
 epsilonTer=1e-6;
 
 % selection parameter
-numTourn=10;
+numTourn=6;
 ChampionPro=0.5;
 
 % Xover and mutation parameter
 shuffleType=1;
-likelihoodXover=0.95;
-likelihoodMut=0.05; 
+likelihoodXover=0.6;
+likelihoodMut=0.005;
 
 % population size
-sizePop=ceil(NF/5)*10;
+% sizePop=ceil(NF/5)*10;
+sizePop=20;
+seedRatio=0.2;
 
 % GA parameter
 epsilon=1e-6;
-display=1;
-gengap=0.8;
+display=0;
+gengap=1;
 
 solution=Greedy(flow,data,alpha,punish);
 sol_greed=solution.allocation;
 
 tic;
 %initialize population
-initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,0.2],sol_greed);
+initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,seedRatio],sol_greed);
     
 %call genetic algorithm
 [x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[epsilon,display,gengap],...
@@ -72,6 +74,8 @@ result(4)=run_time;
 
 buff=MonteCarlo(flow,vector,data,punish,alpha,penalty);
 result(1,5:6)=buff;
+
+% result(7)=trace(end,1); %convergence generation
 %convergence figure
 %     plot(trace(:,1),trace(:,3),'b:','LineWidth',1)
 %     hold on
