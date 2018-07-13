@@ -20,7 +20,20 @@ for ii=1:numel(targets)-1
         -probability_ka(targets(ii));
 end
 
-index = randi(length(targets));
+% index = randi(length(targets));
+% buffer=probability_ka(targets(end));
+% probability_ka(targets(end))=probability_ka(targets(index));
+% probability_ka(targets(index))=buffer;
+while(1)
+    index = randi(length(targets));
+    if index ~= 4
+        break;
+    end
+end
+buffer=probability_ka(4);
+probability_ka(4)=0;
+probability_ka(targets(index))=buffer+probability_ka(targets(index));
+
 buffer=probability_ka(targets(end));
 probability_ka(targets(end))=probability_ka(targets(index));
 probability_ka(targets(index))=buffer;

@@ -16,7 +16,7 @@ end
 %%%%%%%% generate analysis variables %%%%%%%%
 
 % each flow reprerents a mobile user
-flow=1:1:10;
+flow=1:1:20;
 NF=length(flow);
 % for stable, like rng
 NF_TOTAL=20;
@@ -57,7 +57,7 @@ w=path;
 for ii=1:length(data.access_router)
     for jj=1:length(edge_cloud)
         [path{ii,jj},w{ii,jj}]=shortestpath(G_full,data.access_router(ii),edge_cloud(jj));
-    end
+    end  
 end
 data.path=path;
 data.cost=w;

@@ -56,13 +56,15 @@ t = [relay1,relay2,relay3,relay7,relay6,relay5,relay5,relay4,relay14,...
 % mu=100;
 % sigma=30;
 % weights=round(normrnd(mu,sigma,size(s)));
-weights=randi([10 100],size(s));
+% weights=randi([10 100],size(s));
+weights=10; %100Mbps, OSPF Interface Cost
 
 G=graph(s,t,weights,vertice_names);
 
 %some modification of graph G, to make it looks like access layer topology...
 % weights_mod=round(normrnd(mu,sigma,7,1));
-weights_mod=randi([10 100],7,1);
+% weights_mod=randi([10 100],7,1);
+weights_mod=ones(7,1)*10;
 G=addedge(G,router5,AR2,weights_mod(1));
 G=addedge(G,router3,router6,weights_mod(2));
 G=addedge(G,router6,AR3,weights_mod(3));
