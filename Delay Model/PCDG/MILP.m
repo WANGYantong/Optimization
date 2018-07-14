@@ -14,17 +14,23 @@ punish=punish(1:NF);
 x=optimvar('x',NF,length(data.edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
+y=optimvar('y',NF,size(data.graph.Edges,1),'Type','integer',...
+    'LowerBound',0,'UpperBound',1);
+
+z=optimvar('z',NF,size(data.graph.Edges,1),'LowerBound',0);
+
+chi=optimvar('chi',length(data.edge_cloud),'LowerBound',0);
+
+phi=optimvar('phi',NF,length(data.edge_cloud),'LowerBound',0);
+
 pi=optimvar('pi',NF,length(data.access_router),length(data.edge_cloud),...
     'Type','integer','LowerBound',0,'UpperBound',1);
 
-t=optimvar('t',length(data.edge_cloud),'LowerBound',0);
+omega=optimvar('omega',NF,NF,size(data.graph.Edges,1),'LowerBound',0);
 
-y=optimvar('y',NF,length(data.edge_cloud),'LowerBound',0);
-
-z=optimvar('z',size(data.graph.Edges,1),'LowerBound',0);
-
-omega=optimvar('omega',size(data.graph.Edges,1),NF,length(data.access_router),...
-    length(data.edge_cloud),'LowerBound',0);
+psi=optimvar('psi',NF,NF,size(data.graph.Edges,1),length(data.access_router),...
+    length(data.edge_cloud),'Type','integer','LowerBound',0,'UpperBound',1);
+%%%%%%%%%%%%%CONSTRUCT SITE%%%%%%%%%%%%%
 
 %% constraints
 %ec_cache_num_constr
