@@ -32,9 +32,13 @@ for ii=1:NF
 end
 
 % weight of cache cost
-alpha=10;
-% weight of QoS penalty
-penalty=20;
+para.alpha=10;
+% weight of path cost
+para.beta=10;
+% weight of cache miss
+para.gamma=10;
+% cost of cache miss
+para.miss_penalty=1000;
 
 %%%%%%%% generate simulation data structure %%%%%%%%
 data.server=[data_server];
@@ -45,10 +49,10 @@ data.access_router=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
 data.router=[router1,router2,router3,router4,router5,router6,router7,router8];
 data.edge_cloud=edge_cloud;
 
-% idx=[data.router,data.access_router];
-% G_sub=subgraph(G_full,idx);
-% data.graph=G_sub;
-data.graph=G_full;
+idx=[data.router,data.access_router];
+G_sub=subgraph(G_full,idx);
+data.graph=G_sub;
+% data.graph=G_full;
 data.targets=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
 
 %calculate the shortest path and path cost
@@ -56,7 +60,7 @@ path=cell(length(data.access_router), length(edge_cloud));
 w=path;
 for ii=1:length(data.access_router)
     for jj=1:length(edge_cloud)
-        [path{ii,jj},w{ii,jj}]=shortestpath(G_full,data.access_router(ii),edge_cloud(jj));
+        [path{ii,jj},w{ii,jj}]=shortestpath(data.graph,data.access_router(ii),edge_cloud(jj));
     end  
 end
 data.path=path;
@@ -74,11 +78,11 @@ data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
 data.W_e=8500;
-data.Zeta_e=ones(size(edge_cloud))*data.W_e;
-data.Zeta_e=data.Zeta_e.*(1-data.utilization);
+data.W_re_e=ones(size(edge_cloud))*data.W_e;
+data.W_re_e=data.W_re_e.*(1-data.utilization);
 
 % remaining cache space in total
-data.Zeta_t=data.W_e*10;
+data.W_re_t=data.W_re_e*10;
 
 % Delay paremeter
 flow_stable=1:1:NF_TOTAL;
@@ -105,13 +109,12 @@ for ii=1:NF
 end
 data.probability=probability_ka;
 
-punish=log(max(data.delta)+50-data.delta)*200;
-% punish=log(max(data.delta)+50-data.delta)*100;
+para.QoS_penalty=log(max(data.delta)+50-data.delta)*200;
 
 %% II. optimal solution
 buffer=zeros(NF,7);
 parfor ii=1:NF
-   buffer(ii,:)=MILP(flow_parallel{ii},data,alpha,penalty,punish);
+   buffer(ii,:)=MILP(flow_parallel{ii},data,para);
 end
 
 result(1:NF,2:8)=buffer;
@@ -121,7 +124,7 @@ result(1:NF,2:8)=buffer;
 % Nearest Edge Cloud Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=NEC(flow_parallel{ii},data,alpha,penalty,punish);
+   buffer(ii,:)=NEC(flow_parallel{ii},data,para);
 end
 
 result(1:NF,10:15)=buffer;
@@ -129,7 +132,7 @@ result(1:NF,10:15)=buffer;
 % Greedy Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=GRD(flow_parallel{ii},data,alpha,penalty,punish);
+   buffer(ii,:)=GRD(flow_parallel{ii},data,para);
 end
 
 result(1:NF,17:22)=buffer;
@@ -137,7 +140,7 @@ result(1:NF,17:22)=buffer;
 % Randomized Greedy Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=RGR(flow_parallel{ii},data,alpha,penalty,punish);
+   buffer(ii,:)=RGR(flow_parallel{ii},data,para);
 end
 
 result(1:NF,24:29)=buffer;
@@ -145,7 +148,7 @@ result(1:NF,24:29)=buffer;
 % Genetic Algorithm Caching
 buffer=zeros(NF,6);
 parfor ii=1:NF
-   buffer(ii,:)=GAC(flow_parallel{ii},data,alpha,penalty,punish);
+   buffer(ii,:)=GAC(flow_parallel{ii},data,para);
 end
 
 result(1:NF,31:36)=buffer;

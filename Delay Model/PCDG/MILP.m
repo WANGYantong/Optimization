@@ -1,4 +1,4 @@
-function [result] = MILP(flow,data,alpha,penalty,punish)
+function [result] = MILP(flow,data,para)
 
 NF=length(flow);
 result=zeros(1,7);
@@ -8,7 +8,7 @@ data.W_k=data.W_k(1:NF);
 data.R_k=data.R_k(1:NF);
 data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);
-punish=punish(1:NF);
+Qos_penalty=para.QoS_penalty(1:NF);
 
 %% decision variable
 x=optimvar('x',NF,length(data.edge_cloud),'Type','integer',...
@@ -30,37 +30,119 @@ omega=optimvar('omega',NF,NF,size(data.graph.Edges,1),'LowerBound',0);
 
 psi=optimvar('psi',NF,NF,size(data.graph.Edges,1),length(data.access_router),...
     length(data.edge_cloud),'Type','integer','LowerBound',0,'UpperBound',1);
-%%%%%%%%%%%%%CONSTRUCT SITE%%%%%%%%%%%%%
 
 %% constraints
 %ec_cache_num_constr
-ec_cache_num_constr=sum(x,2)==data.N_k;
+ec_cache_num_constr=sum(x,2)<=data.N_k;
 
 %ec_cache_space_constr
-ec_cache_space_constr=data.W_k*x<=data.Zeta_e;
+ec_cache_space_constr=data.W_k*x<=data.W_re_e;
 
 %total_cache_space_constr
-total_cache_space_constr=sum(data.W_k*x,2)<=data.Zeta_t;
-
-%linear_denominator_constr
-linear_denominator_constr=data.Zeta_e.*t'-data.W_k*y==1;
+total_cache_space_constr=sum(data.W_k*x,2)<=data.W_re_t;
 
 %sufficiently large number
 M1=1;
 M2=100000;
-
-%y_define_constr
-t_y=repmat(t',[NF,1]);
-y_define_constr1=y<=t_y;
-y_define_constr2=y<=M1*x;
-y_define_constr3=y>=M1*(x-1)+t_y;
 
 %pi_define_constr
 x_pi=repmat(x,[length(data.access_router),1,1]);
 x_pi=reshape(x_pi,NF,length(data.access_router),length(data.edge_cloud));
 pi_define_constr1=pi<=x_pi;
 
-pi_define_constr2=sum(pi,3)<=1;
+probability_pi=repmat(probability_ka,[1,1,length(data.edge_cloud)]);
+pi_define_constr2=pi<=M2*probability_pi;
+
+pi_define_constr3=sum(pi,3)<=1;
+
+%linear_denominator_constr
+linear_denominator_constr=data.W_re_e.*chi'-data.W_k*phi==1;
+
+%phi_define_constr
+chi_phi=repmat(chi',[NF,1]);
+phi_define_constr1=phi<=chi_phi;
+phi_define_constr2=phi<=M1*x;
+phi_define_constr3=phi>=M1*(x-1)+chi_phi;
+
+BETA=GetPathLinkRel(data.graph,"undirected",data.path,length(data.access_router),...
+    length(data.edge_cloud));
+%y_define_constr
+[m,n,l]=size(BETA);
+BETA_y=reshape(BETA,1,m*n*l);
+BETA_y=repmat(BETA_y,[NF,1]);
+BETA_y=reshape(BETA_y,NF,m,n,l);
+
+pi_y=repmat(pi,[size(BETA,1),1,1,1]);
+pi_y=reshape(pi_y,NF,size(BETA,1),length(data.access_router),length(data.edge_cloud));
+
+y_define_constr1=y<=sum(sum(BETA_y.*pi_y,4),3);
+y_define_constr2=M2*y>=sum(sum(BETA_y.*pi_y,4),3);
+
+%link_slack_constr
+delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
+% delta_link=data.delta*2/3;
+link_slack_constr=sum(z,2)<=delta_link;
+
+%link_delay_constr
+[m,n,l]=size(BETA);
+BETA_psi=reshape(BETA,1,m*n*l);
+BETA_psi=repmat(BETA_psi,[NF,1]);
+BETA_psi=reshape(BETA_psi,NF,m,n,l);
+[l,g,b,t]=size(BETA_psi);
+BETA_psi=reshape(BETA_psi,1,l*g*b*t);
+BETA_psi=repmat(BETA_psi,[NF,1]);
+BETA_psi=reshape(BETA_psi,NF,l,g,b,t);
+% test
+% buffeerrr=cell(NF,NF);
+% for ii=1:20
+%     for jj=1:20
+%         a=zeros(size(BETA));
+%         a(:,:,:)=BETA_psi(ii,jj,:,:,:);
+%         buffeerrr{ii,jj}=a;
+%         check=(buffeerrr{ii,jj}==BETA);
+%         all(check)
+%     end
+% end
+R_psi=repmat(data.R_k,[l,1,g,b,t]);
+z_psi_d=repmat(z,[1,1,b]);
+R_psi_d=repmat(data.R_k,[l,1,g,b]);
+omega_psi_d=repmat(omega,[1,1,1,b]);
+
+link_delay_constr=squeeze(sum(sum(BETA_psi.*R_psi.*psi,5),1))...
+    <=data.C_l*z_psi_d-squeeze(sum(R_psi_d.*omega_psi_d,1));
+
+%psi_define_constr
+
+%manual generator
+%how to expand the optimvar like \pi_{k,d,e} to \pi_{k',k,l,d,e}? permute
+%could not be used for optimvar in version 2018a. 
+psi_define_constr1=optimconstr(l,l,g,b,t);
+psi_define_constr2=optimconstr(l,l,g,b,t);
+psi_define_constr3=optimconstr(l,l,g,b,t);
+for ii=1:l
+    for jj=1:l
+        for kk=1:g
+            for ll=1:b
+                for mm=1:t
+                    psi_define_constr1(ii,jj,kk,ll,mm)=psi(ii,jj,kk,ll,mm)<=pi(jj,ll,mm);
+                    psi_define_constr2(ii,jj,kk,ll,mm)=psi(ii,jj,kk,ll,mm)<=y(ii,kk);
+                    psi_define_constr3(ii,jj,kk,ll,mm)=psi(ii,jj,kk,ll,mm)>=pi(jj,ll,mm)+y(ii,kk)-1;
+                end
+            end
+        end
+    end
+end
+
+%omega_define_constr
+[m,n]=size(z);
+z_omega=reshape(z,1,m*n);
+z_omega=repmat(z_omega,[NF,1]);
+z_omega=reshape(z_omega,NF,m,n);
+
+y_omega=reshape(y,1,m*n);
+y_omega=repmat(y_omega,[NF,1]);
+y_omega=reshape(y_omega,m,NF,n);
+%%%%%%%%%%%%%CONSTRUCT SITE%%%%%%%%%%%%%
 
 %link_delay_constr
 R_komega=repmat(data.R_k,[size(data.graph.Edges,1),1,...
@@ -87,10 +169,7 @@ red_buff=repmat(red_buff,[1,NF,n,l]);
 
 link_delay_constr=C_lomega.*beta_omega.*omega-red_buff>=beta_omega.*pi_omega;
 
-%link_slack_constr
-delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
-% delta_link=data.delta*2/3;
-link_slack_constr=sum(sum(sum(beta_omega.*omega,4),3),1)<=delta_link;
+
 
 %omega_define_constr
 z_omega=repmat(z,[1,NF,length(data.access_router),length(data.edge_cloud)]);

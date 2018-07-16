@@ -15,7 +15,7 @@ if nargin ~= 3
         error('Error. \n Illegal input number')
 end
 
-basic = 1/(Cl-sum(Rk)); % unit ms
+basic = sum(Rk)/(Cl-sum(Rk)); % unit ms
 factornum = 0;
 
 for ii = 1:numel(path)
