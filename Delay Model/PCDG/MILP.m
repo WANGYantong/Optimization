@@ -139,9 +139,23 @@ z_omega=reshape(z,1,m*n);
 z_omega=repmat(z_omega,[NF,1]);
 z_omega=reshape(z_omega,NF,m,n);
 
-y_omega=reshape(y,1,m*n);
-y_omega=repmat(y_omega,[NF,1]);
+y_omega=repmat(y,[NF,1,1]);
 y_omega=reshape(y_omega,m,NF,n);
+
+omega_define_constr1=omega<=z_omega;
+omega_define_constr2=omega<=M2*y_omega;
+omega_define_constr3=omega>=M2*(y_omega-1)+z_omega;
+
+%edge_delay_constr
+% in practice, use min() to replace the delta_edge not effect the result
+% delta_edge=min(data.delta*1/3);
+delta_edge=min(data.delta-delta_link);
+lammax=GetMaxLambda(data.mu,data.ce,delta_edge);
+edge_delay_constr=sum(x,1)<=lammax;
+
+%queue_stable_constr
+
+
 %%%%%%%%%%%%%CONSTRUCT SITE%%%%%%%%%%%%%
 
 %link_delay_constr
@@ -177,12 +191,7 @@ omega_define_constr1=omega<=z_omega;
 omega_define_constr2=omega<=M2*pi_omega;
 omega_define_constr3=omega>=M2*(pi_omega-1)+z_omega;
 
-%edge_delay_constr
-% in practice, use min() to replace the delta_edge not effect the result
-% delta_edge=min(data.delta*1/3);
-delta_edge=min(data.delta-delta_link);
-lammax=GetMaxLambda(data.mu,data.ce,delta_edge);
-edge_delay_constr=sum(x,1)<=lammax;
+
 
 %% create optimization problem and objective function
 
