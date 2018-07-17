@@ -2,15 +2,17 @@ function [sol, fitnessVal] = fitness(sol, options)
 
 global data_buff;
 
-punish=options{1};
+para=options{1};
 
 Wsize=data_buff.W_k;
-Rspace=data_buff.Zeta_e;
-Rtotal=data_buff.Zeta_t;
+Rspace=data_buff.W_re_e;
+Rtotal=data_buff.W_re_t;
 server=data_buff.server;
 
 NF=length(sol);
 sol_mod=sol;
+
+Qos_penalty=para.QoS_penalty(1:NF);
 
 for ii=1:NF
     
@@ -24,12 +26,12 @@ for ii=1:NF
     end   
 end
 
-result=CostCalculator(sol_mod,data_buff,data_buff.alpha,punish);
+result=CostCalculator(sol_mod,data_buff,para);
 delay_time=TimeCalculator(sol_mod,data_buff);
 
 for ii=1:NF
     if delay_time(ii) > data_buff.delta(ii)
-        result=result+(1/data_buff.penalty)*punish(ii)*(delay_time(ii)...
+        result=result+Qos_penalty(ii)*(delay_time(ii)...
             -data_buff.delta(ii));
     end
 end

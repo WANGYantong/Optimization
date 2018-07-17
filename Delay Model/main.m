@@ -82,7 +82,7 @@ data.W_re_e=ones(size(edge_cloud))*data.W_e;
 data.W_re_e=data.W_re_e.*(1-data.utilization);
 
 % remaining cache space in total
-data.W_re_t=data.W_re_e*10;
+data.W_re_t=data.W_e*10;
 
 % Delay paremeter
 flow_stable=1:1:NF_TOTAL;

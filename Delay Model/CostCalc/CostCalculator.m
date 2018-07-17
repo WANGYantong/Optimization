@@ -1,4 +1,4 @@
-function cost = CostCalculator(solution,data,alpha,punish)
+function cost = CostCalculator(solution,data,para)
 
 if isstruct(solution)
     pre_allocate=solution.allocation;
@@ -7,8 +7,8 @@ else
 end
 Wsize=data.W_k;
 probability=data.probability;
-Rspace=data.Zeta_e;
-Rtotal=data.Zeta_t;
+Rspace=data.W_re_e;
+Rtotal=data.W_re_t;
 Fullspace=data.W_e;
 utilization=data.utilization;
 access_router=data.access_router;
@@ -35,7 +35,7 @@ end
 
 for ii=1:NF
     if(label(ii)==0)
-        cache_cost=alpha/(1-utilization(pre_allocate(ii)));
+        cache_cost=1/(1-utilization(pre_allocate(ii)));
         
         cache_hit_cost=0;
         for jj=1:length(access_router)
@@ -46,9 +46,9 @@ for ii=1:NF
         %cache_miss_cost=(1-probability(ii,ar_list(ii)))*punish(ii);
         cache_miss_cost=0;
         
-        cost=cost+cache_cost+cache_hit_cost+cache_miss_cost;
+        cost=cost+(1/para.alpha)*cache_cost+(1/para.beta)*cache_hit_cost+(1/para.gamma)*cache_miss_cost;
     else
-        cost=cost+punish(ii); 
+        cost=cost+(1/para.gamma)*para.miss_penalty; 
     end
 end
 

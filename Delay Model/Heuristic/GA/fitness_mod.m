@@ -1,12 +1,14 @@
-function [fine, failed_number] = fitness_mod(sol, data, penalty,punish)
+function [fine, failed_number] = fitness_mod(sol, data,para)
 
 Wsize=data.W_k;
-Rspace=data.Zeta_e;
-Rtotal=data.Zeta_t;
+Rspace=data.W_re_e;
+Rtotal=data.W_re_t;
 server=data.server;
 
 NF=length(sol);
 sol_mod=sol;
+
+Qos_penalty=para.QoS_penalty(1:NF);
 
 for ii=1:NF
     
@@ -26,7 +28,7 @@ delay_time=TimeCalculator(sol_mod,data);
 
 for ii=1:NF
     if delay_time(ii) > data.delta(ii)
-        fine=fine+(1/penalty)*punish(ii)*(delay_time(ii)...
+        fine=fine+Qos_penalty(ii)*(delay_time(ii)...
             -data.delta(ii));
         failed_number=failed_number+1;
     end

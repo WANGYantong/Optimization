@@ -1,4 +1,4 @@
-function result = GAC(flow,data,alpha,penalty,punish)
+function result = GAC(flow,data,para)
 %Genetic Algorithm
 %
 % encoding : binary array
@@ -18,15 +18,12 @@ data.W_k=data.W_k(1:NF);
 data.R_k=data.R_k(1:NF);
 data.delta=data.delta(1:NF);
 data.probability=data.probability(1:NF,:);
-punish=punish(1:NF);
 
 num_ec=length(data.edge_cloud);
 
 result=zeros(1,6);
 
 data_buff=data;
-data_buff.alpha=alpha;
-data_buff.penalty=penalty;
 
 % termination parameter
 maxGen=50;
@@ -44,7 +41,7 @@ likelihoodMut=0.005;
 
 % population size
 % sizePop=ceil(NF/5)*10;
-sizePop=20;
+sizePop=30;
 seedRatio=0.2;
 
 % GA parameter
@@ -52,27 +49,27 @@ epsilon=1e-6;
 display=0;
 gengap=1;
 
-solution=Greedy(flow,data,alpha,punish);
+solution=Greedy(flow,data,para);
 sol_greed=solution.allocation;
 
 tic;
 %initialize population
-initPop = initialize_ga(sizePop,'fitness',{punish},[NF,num_ec],[1,seedRatio],sol_greed);
+initPop = initialize_ga(sizePop,'fitness',{para},[NF,num_ec],[1,seedRatio],sol_greed);
     
 %call genetic algorithm
-[x,endPop,bpop,trace] = GO_ga('fitness',{punish},initPop,[epsilon,display,gengap],...
+[x,endPop,bpop,trace] = GO_ga('fitness',{para},initPop,[epsilon,display,gengap],...
     'optTerm_ga',[maxGen,maxCnt,epsilonTer],...
     'tournSelect_ga',[numTourn,ChampionPro],'shuffleXover_ga',[likelihoodXover,shuffleType],...
     'binaryMut_ga',[likelihoodMut]);
 run_time=toc;
 
 vector=decoding_ga(x{1});
-[result(2),result(3)]=fitness_mod(vector,data,penalty,punish);
+[result(2),result(3)]=fitness_mod(vector,data,para);
 
 result(1)=x{2};
 result(4)=run_time;
 
-buff=MonteCarlo(flow,vector,data,punish,alpha,penalty);
+buff=MonteCarlo(flow,vector,data,para);
 result(1,5:6)=buff;
 
 % result(7)=trace(end,1); %convergence generation

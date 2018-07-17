@@ -116,22 +116,11 @@ link_delay_constr=squeeze(sum(sum(BETA_psi.*R_psi.*psi,5),1))...
 %manual generator
 %how to expand the optimvar like \pi_{k,d,e} to \pi_{k',k,l,d,e}? permute
 %could not be used for optimvar in version 2018a. 
-psi_define_constr1=optimconstr(l,l,g,b,t);
-psi_define_constr2=optimconstr(l,l,g,b,t);
-psi_define_constr3=optimconstr(l,l,g,b,t);
-for ii=1:l
-    for jj=1:l
-        for kk=1:g
-            for ll=1:b
-                for mm=1:t
-                    psi_define_constr1(ii,jj,kk,ll,mm)=psi(ii,jj,kk,ll,mm)<=pi(jj,ll,mm);
-                    psi_define_constr2(ii,jj,kk,ll,mm)=psi(ii,jj,kk,ll,mm)<=y(ii,kk);
-                    psi_define_constr3(ii,jj,kk,ll,mm)=psi(ii,jj,kk,ll,mm)>=pi(jj,ll,mm)+y(ii,kk)-1;
-                end
-            end
-        end
-    end
-end
+%Generated in advance, here load and trailor
+load('psi_constr.mat');
+psi_define_constr1=psi_define_constr1(1:l,1:l,:,:,:);
+psi_define_constr2=psi_define_constr2(1:l,1:l,:,:,:);
+psi_define_constr3=psi_define_constr3(1:l,1:l,:,:,:);
 
 %omega_define_constr
 [m,n]=size(z);
@@ -154,50 +143,16 @@ lammax=GetMaxLambda(data.mu,data.ce,delta_edge);
 edge_delay_constr=sum(x,1)<=lammax;
 
 %queue_stable_constr
+R_y=repmat(data.R_k,[size(data.graph.Edges,1),1])';
+link_stable_constr=data.C_l-sum(R_y.*y,1)>=0;
 
-
-%%%%%%%%%%%%%CONSTRUCT SITE%%%%%%%%%%%%%
-
-%link_delay_constr
-R_komega=repmat(data.R_k,[size(data.graph.Edges,1),1,...
-    length(data.access_router),length(data.edge_cloud)]);
-
-[m,n,l]=size(pi);
-pi_omega=reshape(pi,1,m*n*l);
-pi_omega=repmat(pi_omega,[size(data.graph.Edges,1),1]);
-pi_omega=reshape(pi_omega,size(data.graph.Edges,1),m,n,l);
-
-beta=GetPathLinkRel(data.graph,"undirected",data.path,length(data.access_router),...
-    length(data.edge_cloud));
-[m,n,l]=size(beta);
-beta_omega=reshape(beta,1,m*n*l);
-beta_omega=repmat(beta_omega,[NF,1]);
-beta_omega=reshape(beta_omega,NF,m,n,l);
-beta_omega=permute(beta_omega,[2,1,3,4]);
-
-C_lomega=data.C_l;
-C_lomega=repmat(C_lomega,[m,NF,n,l]);
-
-red_buff=sum(sum(sum(R_komega.*omega.*beta_omega,2),3),4);
-red_buff=repmat(red_buff,[1,NF,n,l]);
-
-link_delay_constr=C_lomega.*beta_omega.*omega-red_buff>=beta_omega.*pi_omega;
-
-
-
-%omega_define_constr
-z_omega=repmat(z,[1,NF,length(data.access_router),length(data.edge_cloud)]);
-omega_define_constr1=omega<=z_omega;
-omega_define_constr2=omega<=M2*pi_omega;
-omega_define_constr3=omega>=M2*(pi_omega-1)+z_omega;
-
-
+edge_stable_constr=data.ce.*data.mu>=sum(x,1);
 
 %% create optimization problem and objective function
 
 ProCache=optimproblem;
 
-objfun1=sum(alpha*data.W_e*y,2);
+objfun1=(1/para.alpha)*sum(data.W_e*phi,2);
 
 probability_pi=repmat(data.probability,[1,1,length(data.edge_cloud)]);
 w_pi=cell2mat(data.cost);
@@ -206,27 +161,35 @@ w_pi=reshape(w_pi,1,m*n);
 w_pi=repmat(w_pi,[NF,1]);
 w_pi=reshape(w_pi,NF,m,n);
 
-objfun2=sum(sum(probability_pi.*w_pi.*pi,3),2);
+objfun2=(1/para.beta)*sum(sum(probability_pi.*w_pi.*pi,3),2);
 
-objfun3=(1-sum(sum(probability_pi.*pi,3),2)).*punish';
+objfun3=(1/para.gamma)*para.miss_penalty*(1-sum(sum(probability_pi.*pi,3),2));
 
 ProCache.Objective=sum(objfun1+objfun2+objfun3);
 
-ProCache.Constraints.ec_cache_num_constr1=ec_cache_num_constr;
+ProCache.Constraints.ec_cache_num_constr=ec_cache_num_constr;
 ProCache.Constraints.ec_cache_space_constr=ec_cache_space_constr;
 ProCache.Constraints.total_cache_space_constr=total_cache_space_constr;
-ProCache.Constraints.linear_denominator_constr=linear_denominator_constr;
-ProCache.Constraints.y_define_constr1=y_define_constr1;
-ProCache.Constraints.y_define_constr2=y_define_constr2;
-ProCache.Constraints.y_define_constr3=y_define_constr3;
 ProCache.Constraints.pi_define_constr1=pi_define_constr1;
 ProCache.Constraints.pi_define_constr2=pi_define_constr2;
-% ProCache.Constraints.link_delay_constr=link_delay_constr;
+ProCache.Constraints.pi_define_constr3=pi_define_constr3;
+ProCache.Constraints.linear_denominator_constr=linear_denominator_constr;
+ProCache.Constraints.phi_define_constr1=phi_define_constr1;
+ProCache.Constraints.phi_define_constr2=phi_define_constr2;
+ProCache.Constraints.phi_define_constr3=phi_define_constr3;
+ProCache.Constraints.y_define_constr1=y_define_constr1;
+ProCache.Constraints.y_define_constr2=y_define_constr2;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
+ProCache.Constraints.link_delay_constr=link_delay_constr;
+ProCache.Constraints.psi_define_constr1=psi_define_constr1;
+ProCache.Constraints.psi_define_constr2=psi_define_constr2;
+ProCache.Constraints.psi_define_constr3=psi_define_constr3;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
 ProCache.Constraints.edge_delay_constr=edge_delay_constr;
+ProCache.Constraints.link_stable_constr=link_stable_constr;
+ProCache.Constraints.edge_stable_constr=edge_stable_constr;
 
 %% solve the problem using MILP
 
@@ -234,7 +197,7 @@ opts=optimoptions('intlinprog','Display','off','MaxTime',36000);
 
 % timer for MILP
 tic;
-[sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
+[sol,~,exitflag,output]=solve(ProCache,'Options',opts);
 MILP_time=toc;
 
 if isempty(sol)
@@ -276,7 +239,7 @@ ar_list=I(:,1);
 solution.allocation=t1;
 solution.ar_list=ar_list;
 
-total_cost=CostCalculator(solution,data,alpha,punish);
+total_cost=CostCalculator(solution,data,para);
 
 delay_time = TimeCalculator(solution,data);
 
@@ -284,7 +247,7 @@ failed_number=0;
 total_cost_add=total_cost;
 for ii=1:NF
     if delay_time(ii) > data.delta(ii)
-        total_cost_add=total_cost_add+(1/penalty)*punish(ii)*(delay_time(ii)-data.delta(ii));
+        total_cost_add=total_cost_add+Qos_penalty(ii)*(delay_time(ii)-data.delta(ii));
         failed_number=failed_number+1;
     end
 end
@@ -292,9 +255,9 @@ end
 midterm=zeros(1,NF);
 for ii=1:NF
     if 100 > data.delta(ii)
-        midterm(ii)=(1/penalty)*punish(ii)*(100-data.delta(ii))+punish(ii);
+        midterm(ii)=Qos_penalty(ii)*(100-data.delta(ii))+para.miss_penalty;
     else
-        midterm(ii)=punish(ii);
+        midterm(ii)=para.miss_penalty;
     end
 end
 
@@ -306,7 +269,7 @@ result(1,5)=MILP_time;
 
 %% Monte Carlo test
 
-buff=MonteCarlo(flow,solution,data,punish,alpha,penalty);
+buff=MonteCarlo(flow,solution,data,para);
 result(1,6:7)=buff;
 
 end

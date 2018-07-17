@@ -1,10 +1,12 @@
-function result=MonteCarlo(flow,solution,data,punish,alpha,penalty)
+function result=MonteCarlo(flow,solution,data,para)
 
 rng(1);
 result=zeros(1,2);
 
 HARDCODE=1000;
 NF=length(flow);
+
+Qos_penalty=para.QoS_penalty(1:NF);
 
 if isstruct(solution)
     pre_allocate=solution.allocation;
@@ -14,8 +16,8 @@ end
 
 Wsize=data.W_k;
 probability=data.probability;
-Rspace=data.Zeta_e;
-Rtotal=data.Zeta_t;
+Rspace=data.W_re_e;
+Rtotal=data.W_re_t;
 Fullspace=data.W_e;
 utilization=data.utilization;
 access_router=data.access_router;
@@ -57,16 +59,16 @@ for ii=1:HARDCODE
     cost=0;
     for jj=1:NF
         if(label(jj)==0)
-            cache_cost=alpha/(1-utilization_buff(pre_allocate(jj)));
+            cache_cost=1/(1-utilization_buff(pre_allocate(jj)));
             
             cache_hit_cost=0;
             [~,path_cost]=shortestpath(graph,ar(jj),edge_clouds(pre_allocate(jj)));
             cache_hit_cost=cache_hit_cost+path_cost;
             cache_miss_cost=0;
             
-            cost=cost+cache_cost+cache_hit_cost+cache_miss_cost;
+            cost=cost+(1/para.alpha)*cache_cost+(1/para.beta)*cache_hit_cost+(1/para.gamma)*cache_miss_cost;
         else
-            cost=cost+punish(jj);
+            cost=cost+(1/para.gamma)*para.miss_penalty;
         end
     end
     ops={1,ar};
@@ -75,7 +77,7 @@ for ii=1:HARDCODE
     total_cost=cost;
     for jj=1:NF
         if delay_time(jj) > data.delta(jj)
-            total_cost=total_cost+(1/penalty)*punish(jj)*(delay_time(jj)-data.delta(jj));
+            total_cost=total_cost+Qos_penalty(jj)*(delay_time(jj)-data.delta(jj));
             failed_number=failed_number+1;
         end
     end

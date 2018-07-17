@@ -2,6 +2,7 @@ function link_delay = GetLinkDelay(assignment,data,ops)
 
 NF=length(assignment);
 pi=zeros(NF,length(data.access_router),length(data.edge_cloud));
+y=zeros(NF,size(data.graph.Edges,1));
 
 probability=data.probability;
 
@@ -25,32 +26,40 @@ else
     end
 end
 
-beta=GetPathLinkRel(data.graph,"undirected",data.path,length(data.access_router),...
+BETA=GetPathLinkRel(data.graph,"undirected",data.path,length(data.access_router),...
     length(data.edge_cloud));
-[m,n,l]=size(beta);
-beta_omega=reshape(beta,1,m*n*l);
-beta_omega=repmat(beta_omega,[NF,1]);
-beta_omega=reshape(beta_omega,NF,m,n,l);
-beta_omega=permute(beta_omega,[2,1,3,4]);
+[m,n,l]=size(BETA);
+BETA_y=reshape(BETA,1,m*n*l);
+BETA_y=repmat(BETA_y,[NF,1]);
+BETA_y=reshape(BETA_y,NF,m,n,l);
 
-R_komega=repmat(data.R_k,[size(data.graph.Edges,1),1,...
-    length(data.access_router),length(data.edge_cloud)]);
+pi_y=repmat(pi,[size(BETA,1),1,1,1]);
+pi_y=reshape(pi_y,NF,size(BETA,1),length(data.access_router),length(data.edge_cloud));
 
-[m,n,l]=size(pi);
-pi_omega=reshape(pi,1,m*n*l);
-pi_omega=repmat(pi_omega,[size(data.graph.Edges,1),1]);
-pi_omega=reshape(pi_omega,size(data.graph.Edges,1),m,n,l);
+buffer_y=sum(sum(BETA_y.*pi_y,4),3);
 
-diff_l=data.C_l-sum(sum(sum(R_komega.*beta_omega.*pi_omega,4),3),2);
-for ii=1:length(diff_l)
-    if diff_l(ii)<0
-        diff_l(ii)=0.99;
+for ii=1:NF
+    for jj=1:size(data.graph.Edges,1)
+        if buffer_y(ii,jj)>=1
+            y(ii,jj)=1;
+        end
     end
 end
-    
-diff_omega=repmat(diff_l,[1,NF,n,l]);
 
-link_delay=sum(sum(sum(beta_omega.*pi_omega./diff_omega,4),3),1);
+num1=sum(BETA_y.*pi_y,4);
+
+R_y=repmat(data.R_k,[size(BETA,1),1])';
+num2=sum(R_y.*y,1);
+
+dom=data.C_l-num2;
+
+num2_y=repmat(num2,[NF,1,length(data.access_router)]);
+dom_y=repmat(dom,[NF,1,length(data.access_router)]);
+
+link_buffer=(num1.*num2_y)./dom_y;
+link_buffer=squeeze(sum(link_buffer,2));
+
+link_delay=max(link_buffer,[],2);
 
 end
 

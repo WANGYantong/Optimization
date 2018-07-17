@@ -1,14 +1,14 @@
-function solution = Randomized(Flows,data,alpha,punish)
+function solution = Randomized(Flows,data,para)
 
 edge_clouds=data.edge_cloud;
 Wsize=data.W_k;
-Rspace=data.Zeta_e;
-Rtotal=data.Zeta_t;
+Rspace=data.W_re_e;
+Rtotal=data.W_re_t;
 delta=data.delta;
 
 TIMES_HARDCODE = 1000;
 
-solution = Greedy(Flows,data,alpha,punish);
+solution = Greedy(Flows,data,para);
 
 time_delay_ori = TimeCalculator(solution,data);
 
@@ -27,7 +27,7 @@ for ii = 1:TIMES_HARDCODE
     legal_flag = check_space(solution.allocation,Wsize,Rspace,Rtotal);
     
     %     if(legal_flag == 1)
-    pre_cost_mid = CostCalculator(solution,data,alpha,punish);
+    pre_cost_mid = CostCalculator(solution,data,para);
     time_delay_pre_mid = TimeCalculator(solution,data);
     if(legal_flag == 1)  % make runing time trend increasing
         pre_cost=pre_cost_mid;
