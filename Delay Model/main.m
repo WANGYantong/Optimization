@@ -38,7 +38,7 @@ para.beta=10;
 % weight of cache miss
 para.gamma=10;
 % cost of cache miss
-para.miss_penalty=1000;
+para.miss_penalty=100;
 
 %%%%%%%% generate simulation data structure %%%%%%%%
 data.server=[data_server];
@@ -109,7 +109,7 @@ for ii=1:NF
 end
 data.probability=probability_ka;
 
-para.QoS_penalty=log(max(data.delta)+50-data.delta)*200;
+para.QoS_penalty=log(max(data.delta)+50-data.delta)*0.1;
 
 %% II. optimal solution
 buffer=zeros(NF,7);
@@ -185,13 +185,22 @@ cost_Monte_GRD=result(1:NF,21);
 cost_Monte_RGR=result(1:NF,28);
 cost_Monte_GA=result(1:NF,35);
 
+% figure(1);
+% plot(flow,cost_Nocache,':o',flow,cost_MILP,'-p',flow,cost_NEC,'-*',...
+%     flow,cost_GRD,'-x',flow,cost_RGR,'-s',flow,cost_GA,'-+',...
+%     'LineWidth',1.6);
+% xlabel('number of flows');
+% ylabel('total cost');
+% lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
+%     'location','northwest');
+% lgd.FontSize=12;
+
 figure(1);
-plot(flow,cost_Nocache,':o',flow,cost_MILP,'-p',flow,cost_NEC,'-*',...
-    flow,cost_GRD,'-x',flow,cost_RGR,'-s',flow,cost_GA,'-+',...
+plot(flow,cost_MILP,'-p', flow,cost_RGR,'-s',flow,cost_GA,'-+',...
     'LineWidth',1.6);
-xlabel('number of flows');
-ylabel('total cost');
-lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
+xlabel('Number of flows');
+ylabel('Total cost');
+lgd=legend({'PCDG','RGC','GAC'},...
     'location','northwest');
 lgd.FontSize=12;
 
@@ -199,10 +208,12 @@ figure(2);
 plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-p',flow,cost_Monte_NEC,'-*',...
     flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-+',...
     'LineWidth',1.6);
-xlabel('number of flows');
+xlabel('Number of flows');
 ylabel('Monte Carlo cost');
 lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
+% set(gca,'yscale','log');
+% xlim([1,20]);
 lgd.FontSize=12;
 grid on;
 
@@ -214,8 +225,8 @@ outage_GA=result(2:2:NF,33);
 outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR,outage_GA];
 figure(3);
 bar(outage,0.6);
-xlabel('number of flows');
-ylabel('outage number');
+xlabel('Number of flows');
+ylabel('Outage number');
 % ylim([0,1.35]);
 set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
@@ -230,8 +241,8 @@ Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
     1-outage_Monte_RGR,1-outage_Monte_GA];
 figure(4);
 bar(Monte_satis);
-xlabel('number of flows');
-ylabel('satisfied probability');
+xlabel('Number of flows');
+ylabel('Satisfied probability');
 ylim([0,1.5]);
 set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
@@ -247,10 +258,11 @@ figure(5);
 plot(flow,runtime_MILP,'-p',flow,runtime_NEC,'-*',...
     flow,runtime_GRD,'-x',flow,runtime_RGR,'-s',flow,runtime_GA,'-+',...
     'LineWidth',1.6);
-xlabel('number of flows');
-ylabel('running time');
+xlabel('Number of flows');
+ylabel('Running time');
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
     'location','northwest');
+set(gca,'yscale','log');
 lgd.FontSize=12;
 
 % export result as xlsx in Windows

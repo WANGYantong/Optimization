@@ -11,6 +11,7 @@ data.probability=data.probability(1:NF,:);
 Qos_penalty=para.QoS_penalty(1:NF);
 
 %% decision variable
+%%%%%%%%%%%%%%construction site%%%%%%%%%%%%%%%%%%%
 x=optimvar('x',NF,length(data.edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
@@ -50,7 +51,7 @@ x_pi=repmat(x,[length(data.access_router),1,1]);
 x_pi=reshape(x_pi,NF,length(data.access_router),length(data.edge_cloud));
 pi_define_constr1=pi<=x_pi;
 
-probability_pi=repmat(probability_ka,[1,1,length(data.edge_cloud)]);
+probability_pi=repmat(data.probability,[1,1,length(data.edge_cloud)]);
 pi_define_constr2=pi<=M2*probability_pi;
 
 pi_define_constr3=sum(pi,3)<=1;
@@ -109,7 +110,7 @@ R_psi_d=repmat(data.R_k,[l,1,g,b]);
 omega_psi_d=repmat(omega,[1,1,1,b]);
 
 link_delay_constr=squeeze(sum(sum(BETA_psi.*R_psi.*psi,5),1))...
-    <=data.C_l*z_psi_d-squeeze(sum(R_psi_d.*omega_psi_d,1));
+    <=squeeze(data.C_l*z_psi_d)-squeeze(sum(R_psi_d.*omega_psi_d,1));
 
 %psi_define_constr
 
@@ -117,10 +118,10 @@ link_delay_constr=squeeze(sum(sum(BETA_psi.*R_psi.*psi,5),1))...
 %how to expand the optimvar like \pi_{k,d,e} to \pi_{k',k,l,d,e}? permute
 %could not be used for optimvar in version 2018a. 
 %Generated in advance, here load and trailor
-load('psi_constr.mat');
-psi_define_constr1=psi_define_constr1(1:l,1:l,:,:,:);
-psi_define_constr2=psi_define_constr2(1:l,1:l,:,:,:);
-psi_define_constr3=psi_define_constr3(1:l,1:l,:,:,:);
+% load('psi_constr.mat');
+% psi_define_constr1=psi_define_constr1(1:l,1:l,:,:,:);
+% psi_define_constr2=psi_define_constr2(1:l,1:l,:,:,:);
+% psi_define_constr3=psi_define_constr3(1:l,1:l,:,:,:);
 
 %omega_define_constr
 [m,n]=size(z);
@@ -181,9 +182,9 @@ ProCache.Constraints.y_define_constr1=y_define_constr1;
 ProCache.Constraints.y_define_constr2=y_define_constr2;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.link_delay_constr=link_delay_constr;
-ProCache.Constraints.psi_define_constr1=psi_define_constr1;
-ProCache.Constraints.psi_define_constr2=psi_define_constr2;
-ProCache.Constraints.psi_define_constr3=psi_define_constr3;
+% ProCache.Constraints.psi_define_constr1=psi_define_constr1;
+% ProCache.Constraints.psi_define_constr2=psi_define_constr2;
+% ProCache.Constraints.psi_define_constr3=psi_define_constr3;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
@@ -193,7 +194,8 @@ ProCache.Constraints.edge_stable_constr=edge_stable_constr;
 
 %% solve the problem using MILP
 
-opts=optimoptions('intlinprog','Display','off','MaxTime',36000);
+% opts=optimoptions('intlinprog','Display','off','MaxTime',36000);
+opts=optimoptions('intlinprog','Display','off');
 
 % timer for MILP
 tic;

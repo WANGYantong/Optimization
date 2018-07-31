@@ -35,7 +35,7 @@ numTourn=6;
 ChampionPro=0.5;
 
 % Xover and mutation parameter
-shuffleType=1;
+shuffleType=0;
 likelihoodXover=0.6;
 likelihoodMut=0.005;
 
