@@ -11,26 +11,26 @@ data.probability=data.probability(1:NF,:);
 Qos_penalty=para.QoS_penalty(1:NF);
 
 %% decision variable
-%%%%%%%%%%%%%%construction site%%%%%%%%%%%%%%%%%%%
+
 x=optimvar('x',NF,length(data.edge_cloud),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
 y=optimvar('y',NF,size(data.graph.Edges,1),'Type','integer',...
     'LowerBound',0,'UpperBound',1);
 
-z=optimvar('z',NF,size(data.graph.Edges,1),'LowerBound',0);
+pi=optimvar('pi',NF,length(data.access_router),length(data.edge_cloud),...
+    'Type','integer','LowerBound',0,'UpperBound',1);
+
+z=optimvar('z',size(data.graph.Edges,1),'LowerBound',0);
 
 chi=optimvar('chi',length(data.edge_cloud),'LowerBound',0);
 
 phi=optimvar('phi',NF,length(data.edge_cloud),'LowerBound',0);
 
-pi=optimvar('pi',NF,length(data.access_router),length(data.edge_cloud),...
-    'Type','integer','LowerBound',0,'UpperBound',1);
+omega=optimvar('omega',NF,size(data.graph.Edges,1),'LowerBound',0);
 
-omega=optimvar('omega',NF,NF,size(data.graph.Edges,1),'LowerBound',0);
-
-psi=optimvar('psi',NF,NF,size(data.graph.Edges,1),length(data.access_router),...
-    length(data.edge_cloud),'Type','integer','LowerBound',0,'UpperBound',1);
+psi=optimvar('psi',NF,size(data.graph.Edges,1),length(data.access_router),...
+    length(data.edge_cloud),'LowerBound',0);
 
 %% constraints
 %ec_cache_num_constr
@@ -56,18 +56,9 @@ pi_define_constr2=pi<=M2*probability_pi;
 
 pi_define_constr3=sum(pi,3)<=1;
 
-%linear_denominator_constr
-linear_denominator_constr=data.W_re_e.*chi'-data.W_k*phi==1;
-
-%phi_define_constr
-chi_phi=repmat(chi',[NF,1]);
-phi_define_constr1=phi<=chi_phi;
-phi_define_constr2=phi<=M1*x;
-phi_define_constr3=phi>=M1*(x-1)+chi_phi;
-
+%y_define_constr
 BETA=GetPathLinkRel(data.graph,"undirected",data.path,length(data.access_router),...
     length(data.edge_cloud));
-%y_define_constr
 [m,n,l]=size(BETA);
 BETA_y=reshape(BETA,1,m*n*l);
 BETA_y=repmat(BETA_y,[NF,1]);
@@ -79,11 +70,30 @@ pi_y=reshape(pi_y,NF,size(BETA,1),length(data.access_router),length(data.edge_cl
 y_define_constr1=y<=sum(sum(BETA_y.*pi_y,4),3);
 y_define_constr2=M2*y>=sum(sum(BETA_y.*pi_y,4),3);
 
+%linear_denominator_constr
+linear_denominator_constr=data.W_re_e.*chi'-data.W_k*phi==1;
+
+%phi_define_constr
+chi_phi=repmat(chi',[NF,1]);
+phi_define_constr1=phi<=chi_phi;
+phi_define_constr2=phi<=M1*x;
+phi_define_constr3=phi>=M1*(x-1)+chi_phi;
+
 %link_slack_constr
 delta_link=GetWorstLinkDelay(data.C_l,data.R_k,data.path);
 % delta_link=data.delta*2/3;
-link_slack_constr=sum(z,2)<=delta_link;
+link_slack_constr=sum(sum(BETA_y.*psi,4),2)<=delta_link;
 
+%link_delay_constr
+R_y=repmat(data.R_k',[1,size(data.graph.Edges,1)]);
+link_delay_constr=sum(R_y.*y,1)<=data.C_l*z'-sum(R_y.*omega,1);
+
+%psi_define_constr
+z_psi=repmat(z',[NF,1,length(data.access_router),length(data.edge_cloud)]);
+z_psi=reshape(z_psi,NF,size(data.graph.Edges,1),...
+    length(data.access_router),length(data.edge_cloud));
+
+%%%%%%%%%%%%%%construction site%%%%%%%%%%%%%%%%%%%
 %link_delay_constr
 [m,n,l]=size(BETA);
 BETA_psi=reshape(BETA,1,m*n*l);
@@ -93,17 +103,6 @@ BETA_psi=reshape(BETA_psi,NF,m,n,l);
 BETA_psi=reshape(BETA_psi,1,l*g*b*t);
 BETA_psi=repmat(BETA_psi,[NF,1]);
 BETA_psi=reshape(BETA_psi,NF,l,g,b,t);
-% test
-% buffeerrr=cell(NF,NF);
-% for ii=1:20
-%     for jj=1:20
-%         a=zeros(size(BETA));
-%         a(:,:,:)=BETA_psi(ii,jj,:,:,:);
-%         buffeerrr{ii,jj}=a;
-%         check=(buffeerrr{ii,jj}==BETA);
-%         all(check)
-%     end
-% end
 R_psi=repmat(data.R_k,[l,1,g,b,t]);
 z_psi_d=repmat(z,[1,1,b]);
 R_psi_d=repmat(data.R_k,[l,1,g,b]);
