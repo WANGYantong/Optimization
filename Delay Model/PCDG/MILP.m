@@ -90,50 +90,20 @@ link_delay_constr=sum(R_y.*y,1)<=data.C_l*z'-sum(R_y.*omega,1);
 
 %psi_define_constr
 z_psi=repmat(z',[NF,1,length(data.access_router),length(data.edge_cloud)]);
-z_psi=reshape(z_psi,NF,size(data.graph.Edges,1),...
-    length(data.access_router),length(data.edge_cloud));
+% z_psi=reshape(z_psi,NF,size(data.graph.Edges,1),...
+%     length(data.access_router),length(data.edge_cloud));
+pi_psi=pi_y;
 
-%%%%%%%%%%%%%%construction site%%%%%%%%%%%%%%%%%%%
-%link_delay_constr
-[m,n,l]=size(BETA);
-BETA_psi=reshape(BETA,1,m*n*l);
-BETA_psi=repmat(BETA_psi,[NF,1]);
-BETA_psi=reshape(BETA_psi,NF,m,n,l);
-[l,g,b,t]=size(BETA_psi);
-BETA_psi=reshape(BETA_psi,1,l*g*b*t);
-BETA_psi=repmat(BETA_psi,[NF,1]);
-BETA_psi=reshape(BETA_psi,NF,l,g,b,t);
-R_psi=repmat(data.R_k,[l,1,g,b,t]);
-z_psi_d=repmat(z,[1,1,b]);
-R_psi_d=repmat(data.R_k,[l,1,g,b]);
-omega_psi_d=repmat(omega,[1,1,1,b]);
-
-link_delay_constr=squeeze(sum(sum(BETA_psi.*R_psi.*psi,5),1))...
-    <=squeeze(data.C_l*z_psi_d)-squeeze(sum(R_psi_d.*omega_psi_d,1));
-
-%psi_define_constr
-
-%manual generator
-%how to expand the optimvar like \pi_{k,d,e} to \pi_{k',k,l,d,e}? permute
-%could not be used for optimvar in version 2018a. 
-%Generated in advance, here load and trailor
-% load('psi_constr.mat');
-% psi_define_constr1=psi_define_constr1(1:l,1:l,:,:,:);
-% psi_define_constr2=psi_define_constr2(1:l,1:l,:,:,:);
-% psi_define_constr3=psi_define_constr3(1:l,1:l,:,:,:);
+psi_define_constr1=psi<=z_psi;
+psi_define_constr2=psi<=M2*pi_psi;
+psi_define_constr3=psi>=M2*(pi_psi-1)+z_psi;
 
 %omega_define_constr
-[m,n]=size(z);
-z_omega=reshape(z,1,m*n);
-z_omega=repmat(z_omega,[NF,1]);
-z_omega=reshape(z_omega,NF,m,n);
-
-y_omega=repmat(y,[NF,1,1]);
-y_omega=reshape(y_omega,m,NF,n);
+z_omega=repmat(z',[NF,1]);
 
 omega_define_constr1=omega<=z_omega;
-omega_define_constr2=omega<=M2*y_omega;
-omega_define_constr3=omega>=M2*(y_omega-1)+z_omega;
+omega_define_constr2=omega<=M2*y;
+omega_define_constr3=omega>=M2*(y-1)+z_omega;
 
 %edge_delay_constr
 % in practice, use min() to replace the delta_edge not effect the result
@@ -143,7 +113,7 @@ lammax=GetMaxLambda(data.mu,data.ce,delta_edge);
 edge_delay_constr=sum(x,1)<=lammax;
 
 %queue_stable_constr
-R_y=repmat(data.R_k,[size(data.graph.Edges,1),1])';
+R_y=repmat(data.R_k',[1,size(data.graph.Edges,1)]);
 link_stable_constr=data.C_l-sum(R_y.*y,1)>=0;
 
 edge_stable_constr=data.ce.*data.mu>=sum(x,1);
@@ -154,7 +124,7 @@ ProCache=optimproblem;
 
 objfun1=(1/para.alpha)*sum(data.W_e*phi,2);
 
-probability_pi=repmat(data.probability,[1,1,length(data.edge_cloud)]);
+% probability_pi=repmat(data.probability,[1,1,length(data.edge_cloud)]);
 w_pi=cell2mat(data.cost);
 [m,n]=size(w_pi);
 w_pi=reshape(w_pi,1,m*n);
@@ -181,9 +151,9 @@ ProCache.Constraints.y_define_constr1=y_define_constr1;
 ProCache.Constraints.y_define_constr2=y_define_constr2;
 ProCache.Constraints.link_slack_constr=link_slack_constr;
 ProCache.Constraints.link_delay_constr=link_delay_constr;
-% ProCache.Constraints.psi_define_constr1=psi_define_constr1;
-% ProCache.Constraints.psi_define_constr2=psi_define_constr2;
-% ProCache.Constraints.psi_define_constr3=psi_define_constr3;
+ProCache.Constraints.psi_define_constr1=psi_define_constr1;
+ProCache.Constraints.psi_define_constr2=psi_define_constr2;
+ProCache.Constraints.psi_define_constr3=psi_define_constr3;
 ProCache.Constraints.omega_define_constr1=omega_define_constr1;
 ProCache.Constraints.omega_define_constr2=omega_define_constr2;
 ProCache.Constraints.omega_define_constr3=omega_define_constr3;
@@ -198,7 +168,7 @@ opts=optimoptions('intlinprog','Display','off');
 
 % timer for MILP
 tic;
-[sol,~,exitflag,output]=solve(ProCache,'Options',opts);
+[sol,fval,exitflag,output]=solve(ProCache,'Options',opts);
 MILP_time=toc;
 
 if isempty(sol)

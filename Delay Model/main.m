@@ -26,7 +26,7 @@ for ii=1:NF
 end
 
 % store result
-result=zeros(NF_TOTAL,36);
+result=zeros(NF_TOTAL,43);
 for ii=1:NF
     result(ii,1)=ii;
 end
@@ -119,7 +119,20 @@ end
 
 result(1:NF,2:8)=buffer;
 
-%% III. heuristic solution
+%% III. Oracle solution
+data_cp=data;
+data_cp.probability=zeros(NF,length(data_cp.access_router));
+[~,I]=sort(data.probability,2,'descend');
+for ii=1:NF
+    data_cp.probability(ii,I(ii))=1;
+end
+buffer=zeros(NF,7);
+
+parfor ii=1:NF
+   buffer(ii,:)=MILP(flow_parallel{ii},data_cp,para);
+end
+result(1:NF,38:43)=buffer(1:NF,2:7);
+%% IV. heuristic solution
 
 % Nearest Edge Cloud Caching
 buffer=zeros(NF,6);
@@ -172,6 +185,10 @@ result(1:NF,31:36)=buffer;
 % 30
 % 31 GAC cost; 32 GAC penalty; 33 GAC failed number; 34 GAC running time; 
 % 35 GAC Monte Carlo Cost; 36 GAC Monte Carlo failed number;
+% 37
+% 38 Oracle cost; 39 Oracle penalty; 40 Oracle failed number; 41 Oracle
+% running time; 42 Oracle Monte Carlo Cost; 43 Oracle Monte Carlo failed
+% number
 
 cost_Nocache=result(1:NF,2);
 cost_MILP=result(1:NF,3);
@@ -179,11 +196,13 @@ cost_NEC=result(1:NF,10);
 cost_GRD=result(1:NF,17);
 cost_RGR=result(1:NF,24);
 cost_GA=result(1:NF,31);
+cost_Oracle=result(1:NF,38);
 cost_Monte_MILP=result(1:NF,7);
 cost_Monte_NEC=result(1:NF,14);
 cost_Monte_GRD=result(1:NF,21);
 cost_Monte_RGR=result(1:NF,28);
 cost_Monte_GA=result(1:NF,35);
+cost_Monte_Oracle=result(1:NF,42);
 
 % figure(1);
 % plot(flow,cost_Nocache,':o',flow,cost_MILP,'-p',flow,cost_NEC,'-*',...
@@ -196,21 +215,21 @@ cost_Monte_GA=result(1:NF,35);
 % lgd.FontSize=12;
 
 figure(1);
-plot(flow,cost_MILP,'-p', flow,cost_RGR,'-s',flow,cost_GA,'-+',...
-    'LineWidth',1.6);
+plot(flow,cost_Monte_MILP,'-p', flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-+',...
+    flow,cost_Monte_Oracle,'-^','LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Total cost');
-lgd=legend({'PCDG','RGC','GAC'},...
+lgd=legend({'PCDG','RGC','GAC','Oracle'},...
     'location','northwest');
 lgd.FontSize=12;
 
 figure(2);
 plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-p',flow,cost_Monte_NEC,'-*',...
     flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-+',...
-    'LineWidth',1.6);
+    flow, cost_Monte_Oracle,'-^','LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Monte Carlo cost');
-lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
+lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC','Oracle'},...
     'location','northwest');
 % set(gca,'yscale','log');
 % xlim([1,20]);
@@ -222,14 +241,15 @@ outage_NEC=result(2:2:NF,12);
 outage_GRD=result(2:2:NF,19);
 outage_RGR=result(2:2:NF,26);
 outage_GA=result(2:2:NF,33);
-outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR,outage_GA];
+outage_Oracle=result(2:2:NF,40);
+outage=[outage_MILP,outage_NEC,outage_GRD,outage_RGR,outage_GA,outage_Oracle];
 figure(3);
 bar(outage,0.6);
 xlabel('Number of flows');
 ylabel('Outage number');
 % ylim([0,1.35]);
 set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},'location','northwest');
 lgd.FontSize=12;
 
 outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
@@ -237,15 +257,16 @@ outage_Monte_NEC=result(2:2:NF,15)./result(2:2:NF,1);
 outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
 outage_Monte_RGR=result(2:2:NF,29)./result(2:2:NF,1);
 outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
+outage_Monte_Oracle=result(2:2:NF,43)./result(2:2:NF,1);
 Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
-    1-outage_Monte_RGR,1-outage_Monte_GA];
+    1-outage_Monte_RGR,1-outage_Monte_GA,1-outage_Monte_Oracle];
 figure(4);
 bar(Monte_satis);
 xlabel('Number of flows');
 ylabel('Satisfied probability');
 ylim([0,1.5]);
 set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},'location','northwest');
 lgd.FontSize=12;
 % applyhatch(gcf,'\/-x+',[]);
 
@@ -254,13 +275,14 @@ runtime_NEC=result(1:NF,13);
 runtime_GRD=result(1:NF,20);
 runtime_RGR=result(1:NF,27);
 runtime_GA=result(1:NF,34);
+runtime_Oracle=result(1:NF,41);
 figure(5);
 plot(flow,runtime_MILP,'-p',flow,runtime_NEC,'-*',...
     flow,runtime_GRD,'-x',flow,runtime_RGR,'-s',flow,runtime_GA,'-+',...
-    'LineWidth',1.6);
+    flow,runtime_Oracle,'-^','LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Running time');
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},...
     'location','northwest');
 set(gca,'yscale','log');
 lgd.FontSize=12;

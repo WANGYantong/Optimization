@@ -26,28 +26,28 @@ result=zeros(1,6);
 data_buff=data;
 
 % termination parameter
-maxGen=50;
-maxCnt=10;
+maxGen=100;
+maxCnt=20;
 epsilonTer=1e-6;
 
 % selection parameter
-numTourn=6;
+numTourn=25;
 ChampionPro=0.5;
 
 % Xover and mutation parameter
 shuffleType=0;
-likelihoodXover=0.6;
+likelihoodXover=0.8;
 likelihoodMut=0.005;
 
 % population size
-% sizePop=ceil(NF/5)*10;
-sizePop=30;
-seedRatio=0.2;
+% sizePop=30+floor(NF/5)*10;
+sizePop=50;
+seedRatio=0.1;
 
 % GA parameter
 epsilon=1e-6;
 display=0;
-gengap=1;
+gengap=0.9;
 
 solution=Greedy(flow,data,para);
 sol_greed=solution.allocation;

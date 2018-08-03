@@ -6,7 +6,7 @@ Rspace=data.W_re_e;
 Rtotal=data.W_re_t;
 delta=data.delta;
 
-TIMES_HARDCODE = 1000;
+TIMES_HARDCODE = 500;
 
 solution = Greedy(Flows,data,para);
 
