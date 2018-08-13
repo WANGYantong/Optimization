@@ -26,12 +26,12 @@ result=zeros(1,6);
 data_buff=data;
 
 % termination parameter
-maxGen=100;
-maxCnt=20;
+maxGen=50;
+maxCnt=30;
 epsilonTer=1e-6;
 
 % selection parameter
-numTourn=25;
+numTourn=6;
 ChampionPro=0.5;
 
 % Xover and mutation parameter
@@ -41,13 +41,13 @@ likelihoodMut=0.005;
 
 % population size
 % sizePop=30+floor(NF/5)*10;
-sizePop=50;
+sizePop=30;
 seedRatio=0.1;
 
 % GA parameter
 epsilon=1e-6;
-display=0;
-gengap=0.9;
+display=1;
+gengap=0.95;
 
 solution=Greedy(flow,data,para);
 sol_greed=solution.allocation;
@@ -57,7 +57,7 @@ tic;
 initPop = initialize_ga(sizePop,'fitness',{para},[NF,num_ec],[1,seedRatio],sol_greed);
     
 %call genetic algorithm
-[x,endPop,bpop,trace] = GO_ga('fitness',{para},initPop,[epsilon,display,gengap],...
+[x,~,~,~] = GO_ga('fitness',{para},initPop,[epsilon,display,gengap],...
     'optTerm_ga',[maxGen,maxCnt,epsilonTer],...
     'tournSelect_ga',[numTourn,ChampionPro],'shuffleXover_ga',[likelihoodXover,shuffleType],...
     'binaryMut_ga',[likelihoodMut]);

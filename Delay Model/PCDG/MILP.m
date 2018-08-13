@@ -199,10 +199,16 @@ end
 
 %% return of MILP
 
-[s1,t1]=find(round(sol.x));
-
-[~,II]=sort(s1);
-t1=t1(II);
+% [s1,t1]=find(round(sol.x));
+% 
+% [~,II]=sort(s1);
+% t1=t1(II);
+t1=find_transfer(sol.x);
+for ii=1:NF
+    if t1(ii)==0
+        t1(ii)=data.server;
+    end
+end
 
 [~,I]=sort(data.probability,2,'descend');
 ar_list=I(:,1);

@@ -7,7 +7,7 @@ rng(1);
 %% I. establish parameter
 
 %%%%%%%% construct network topology %%%%%%%%
-[G_full,vertice_names,edge_cloud,p]=GenerateGraph();
+[G_full,vertice_names,edge_cloud,p]=GenerateGraph2();
 N=length(vertice_names);
 for v=1:N
     eval([vertice_names{v},'=',num2str(v),';']);
@@ -41,19 +41,25 @@ para.gamma=10;
 para.miss_penalty=100;
 
 %%%%%%%% generate simulation data structure %%%%%%%%
+% data.server=[data_server];
+% data.relay=[relay1,relay2,relay3,relay4,relay5,relay6,relay7,relay8,relay9,...
+%     relay10,relay11,relay12,relay13,relay14,relay15];
+% data.base_station=[bs1,bs2,bs3,bs4,bs5,bs6,bs7,bs8,bs9,bs10];
+% data.access_router=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
+% data.router=[router1,router2,router3,router4,router5,router6,router7,router8];
+% data.edge_cloud=edge_cloud;
 data.server=[data_server];
-data.relay=[relay1,relay2,relay3,relay4,relay5,relay6,relay7,relay8,relay9,...
-    relay10,relay11,relay12,relay13,relay14,relay15];
-data.base_station=[bs1,bs2,bs3,bs4,bs5,bs6,bs7,bs8,bs9,bs10];
-data.access_router=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
-data.router=[router1,router2,router3,router4,router5,router6,router7,router8];
+data.relay=[relay1,relay2,relay3,relay4,relay5];
+data.access_router=[AR1,AR2,AR3,AR4,AR5];
+data.router=[router1,router2,router3,router4];
 data.edge_cloud=edge_cloud;
 
 idx=[data.router,data.access_router];
 G_sub=subgraph(G_full,idx);
-data.graph=G_sub;
-% data.graph=G_full;
-data.targets=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
+% data.graph=G_sub;
+data.graph=G_full;
+%data.targets=[AR1,AR2,AR3,AR4,AR5,AR6,AR7];
+data.targets=[AR1,AR2,AR3,AR4,AR5];
 
 %calculate the shortest path and path cost
 path=cell(length(data.access_router), length(edge_cloud));
@@ -113,6 +119,7 @@ para.QoS_penalty=log(max(data.delta)+50-data.delta)*0.1;
 
 %% II. optimal solution
 buffer=zeros(NF,7);
+% parfor ii=1:NF
 parfor ii=1:NF
    buffer(ii,:)=MILP(flow_parallel{ii},data,para);
 end
@@ -221,18 +228,43 @@ xlabel('Number of flows');
 ylabel('Total cost');
 lgd=legend({'PCDG','RGC','GAC','Oracle'},...
     'location','northwest');
+% set(gca,'yscale','log');
 lgd.FontSize=12;
 
+% figure(2);
+% % axis auto normal;
+% plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-p',flow,cost_Monte_NEC,'-*',...
+%     flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-+',...
+%     flow, cost_Monte_Oracle,'-^','LineWidth',1.6);
+% xlabel('Number of flows');
+% ylabel('Monte Carlo cost');
+% lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC','Oracle'},...
+%     'location','northwest');
+% % set(gca,'YTick',[0:50:250,500:500:2500]);
+% %set(gca,'yscale','log');
+% % xlim([1,20]);
+% lgd.FontSize=12;
+% grid on;
+
+threshold=[100,300];
+scale_k=[10,5,5/22];
+scale_b=[0,500,42500/22];
+cost_Nocache_cp=figureScale(cost_Nocache,threshold,scale_k,scale_b);
+cost_Monte_MILP_cp=figureScale(cost_Monte_MILP,threshold,scale_k,scale_b);
+cost_Monte_NEC_cp=figureScale(cost_Monte_NEC,threshold,scale_k,scale_b);
+cost_Monte_GRD_cp=figureScale(cost_Monte_GRD,threshold,scale_k,scale_b);
+cost_Monte_RGR_cp=figureScale(cost_Monte_RGR,threshold,scale_k,scale_b);
+cost_Monte_GA_cp=figureScale(cost_Monte_GA,threshold,scale_k,scale_b);
+cost_Monte_Oracle_cp=figureScale(cost_Monte_Oracle,threshold,scale_k,scale_b);
 figure(2);
-plot(flow,cost_Nocache,'-o',flow,cost_Monte_MILP,'-p',flow,cost_Monte_NEC,'-*',...
-    flow,cost_Monte_GRD,'-x',flow,cost_Monte_RGR,'-s',flow,cost_Monte_GA,'-+',...
-    flow, cost_Monte_Oracle,'-^','LineWidth',1.6);
+plot(flow,cost_Nocache_cp,'-o',flow,cost_Monte_MILP_cp,'-p',flow,cost_Monte_NEC_cp,'-*',...
+    flow,cost_Monte_GRD_cp,'-x',flow,cost_Monte_RGR_cp,'-s',flow,cost_Monte_GA_cp,'-+',...
+    flow, cost_Monte_Oracle_cp,'-^','LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Monte Carlo cost');
 lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC','Oracle'},...
     'location','northwest');
-% set(gca,'yscale','log');
-% xlim([1,20]);
+yticklabels({'0','50','100','200','300','2500'});
 lgd.FontSize=12;
 grid on;
 
@@ -252,12 +284,30 @@ set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','2
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},'location','northwest');
 lgd.FontSize=12;
 
-outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
-outage_Monte_NEC=result(2:2:NF,15)./result(2:2:NF,1);
-outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
-outage_Monte_RGR=result(2:2:NF,29)./result(2:2:NF,1);
-outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
-outage_Monte_Oracle=result(2:2:NF,43)./result(2:2:NF,1);
+% outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
+% outage_Monte_NEC=result(2:2:NF,15)./result(2:2:NF,1);
+% outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
+% outage_Monte_RGR=result(2:2:NF,29)./result(2:2:NF,1);
+% outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
+% outage_Monte_Oracle=result(2:2:NF,43)./result(2:2:NF,1);
+% Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
+%     1-outage_Monte_RGR,1-outage_Monte_GA,1-outage_Monte_Oracle];
+% figure(4);
+% bar(Monte_satis);
+% xlabel('Number of flows');
+% ylabel('Satisfied probability');
+% ylim([0,1.5]);
+% set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
+% lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},'location','northwest');
+% lgd.FontSize=12;
+% % applyhatch(gcf,'\/-x+',[]);
+
+outage_Monte_MILP=result(5:5:NF,8)./result(5:5:NF,1);
+outage_Monte_NEC=result(5:5:NF,15)./result(5:5:NF,1);
+outage_Monte_GRD=result(5:5:NF,22)./result(5:5:NF,1);
+outage_Monte_RGR=result(5:5:NF,29)./result(5:5:NF,1);
+outage_Monte_GA=result(5:5:NF,36)./result(5:5:NF,1);
+outage_Monte_Oracle=result(5:5:NF,43)./result(5:5:NF,1);
 Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
     1-outage_Monte_RGR,1-outage_Monte_GA,1-outage_Monte_Oracle];
 figure(4);
@@ -265,10 +315,10 @@ bar(Monte_satis);
 xlabel('Number of flows');
 ylabel('Satisfied probability');
 ylim([0,1.5]);
-set(gca,'xtick',[1:10],'xticklabel',{'2','4','6','8','10','12','14','16','18','20'});
+set(gca,'xtick',[1:4],'xticklabel',{'5','10','15','20'});
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},'location','northwest');
 lgd.FontSize=12;
-% applyhatch(gcf,'\/-x+',[]);
+applyhatch(gcf,'\/-x+|',[]);
 
 runtime_MILP=result(1:NF,6);
 runtime_NEC=result(1:NF,13);
