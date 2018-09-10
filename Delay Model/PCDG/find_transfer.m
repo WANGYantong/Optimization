@@ -6,7 +6,7 @@ t=zeros(NF,1);
 
 for ii=1:NF
     if any(x(ii,:))==1
-        t(ii)=find(x(ii,:));
+        t(ii)=find(x(ii,:),1);
     end
 end
 

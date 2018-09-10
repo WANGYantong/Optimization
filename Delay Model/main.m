@@ -7,7 +7,7 @@ rng(1);
 %% I. establish parameter
 
 %%%%%%%% construct network topology %%%%%%%%
-[G_full,vertice_names,edge_cloud,p]=GenerateGraph2();
+[G_full,vertice_names,edge_cloud,p]=GenerateGraph();
 N=length(vertice_names);
 for v=1:N
     eval([vertice_names{v},'=',num2str(v),';']);
