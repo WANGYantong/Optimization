@@ -1,4 +1,4 @@
-function [probability_ka] = GetFlowProbability(i,access_router, targets)
+function [probability_ka] = GetFlowProbability(i,access_router, targets,opts)
 %GETFLOWPROBABILITY return the probability of mobile users movement
 %
 %   Input variables:
