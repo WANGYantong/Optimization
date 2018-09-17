@@ -112,7 +112,7 @@ data.delta=repmat(mid_array,1,20);
 % mobile user movement
 probability_ka=zeros(flow(end),length(data.targets));
 for ii=1:flow(end)
-    probability_ka(ii,:)=GetFlowProbability(ii,data.access_router,data.targets);
+    probability_ka(ii,:)=GetFlowProbability(ii,data.access_router,data.targets,3);
 end
 data.probability=probability_ka;
 
