@@ -12,7 +12,7 @@ R_k=randi([1,10],size(flow_stable));
 % ce(5:6)=6;
 % ce(9)=6;
 % ce(7:8)=8;
-ce=ones(size(edge_cloud))*8;
+ce=ones(size(edge_cloud))*4;
 
 % each server service rate
 % assuming service rates for different flows are same

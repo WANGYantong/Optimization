@@ -46,7 +46,7 @@ seedRatio=0.1;
 
 % GA parameter
 epsilon=1e-6;
-display=1;
+display=0;
 gengap=0.95;
 
 solution=Greedy(flow,data,para);

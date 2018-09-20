@@ -16,10 +16,10 @@ end
 %%%%%%%% generate analysis variables %%%%%%%%
 step=10;
 % each flow reprerents a mobile user
-flow=1:200;
+flow=1:100;
 NF=length(flow)/step;
 % for stable, like rng
-NF_TOTAL=200;
+NF_TOTAL=100;
 % flow_parallel=cell(size(flow));
 flow_parallel=cell(NF,1);
 for ii=1:NF
@@ -84,12 +84,12 @@ data.W_k=W_k(1:flow(end));
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=6000;
+data.W_e=4000;
 data.W_re_e=ones(size(edge_cloud))*data.W_e;
 data.W_re_e=data.W_re_e.*(1-data.utilization);
 
 % remaining cache space in total
-data.W_re_t=60000;
+data.W_re_t=40000;
 
 % Delay paremeter
 flow_stable=1:NF_TOTAL;
@@ -107,12 +107,12 @@ data.C_l=2000;
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
 mid_array=[30,30,30,100,100,100,100,100,100,60000];
-data.delta=repmat(mid_array,1,20);
+data.delta=repmat(mid_array,1,10);
 
 % mobile user movement
 probability_ka=zeros(flow(end),length(data.targets));
 for ii=1:flow(end)
-    probability_ka(ii,:)=GetFlowProbability(ii,data.access_router,data.targets,3);
+    probability_ka(ii,:)=GetFlowProbability(ii,data.access_router,data.targets,4);
 end
 data.probability=probability_ka;
 
@@ -324,7 +324,7 @@ outage_Monte_RGR=result(5:5:NF,29)./result(5:5:NF,1);
 outage_Monte_GA=result(5:5:NF,36)./result(5:5:NF,1);
 outage_Monte_Oracle=result(5:5:NF,43)./result(5:5:NF,1);
 Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
-    1-outage_Monte_RGR,1-outage_Monte_GA,1-outage_Monte_Oracle];
+    1-outage_Monte_RGR,1-outage_Monte_GA];
 figure(4);
 b=bar(Monte_satis);
 b(1).FaceColor=[0.85,0.33,0.10];
@@ -332,16 +332,15 @@ b(2).FaceColor=[0.93,0.69,0.13];
 b(3).FaceColor=[0.49,0.18,0.56];
 b(4).FaceColor=[0.47,0.67,0.19];
 b(5).FaceColor=[0.30,0.75,0.93];
-b(6).FaceColor=[0.64,0.08,0.18];
 xlabel('Number of flows');
 ylabel('Satisfied probability');
 ylim([0,1.5]);
 set(gca,'xtick',[1:4],'xticklabel',{'50','100','150','200'});
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC','Oracle'},'location','northwest');
+lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
 set(lgd,'Box','off');
 lgd.NumColumns=3;
 lgd.FontSize=12;
-applyhatch(gcf,'\/-x+|',[]);
+applyhatch(gcf,'\/-x+',[]);
 
 runtime_MILP=result(1:NF,6);
 runtime_NEC=result(1:NF,13);
@@ -358,10 +357,13 @@ plot(flow_plot,runtime_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
 plot(flow_plot,runtime_GA,'-+','Color',[0.30,0.75,0.93],'LineWidth',1.6);
 % plot(flow_plot,runtime_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',1.6);
 xlabel('Number of flows');
-ylabel('Running time');
+ylabel('Running time (s)');
 lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
-    'location','northwest');
+    'location','north');
 set(gca,'yscale','log');
+set(lgd,'Box','off');
+lgd.NumColumns=3;
+ylim([0,10^4]);
 lgd.FontSize=12;
 hold off;
 
