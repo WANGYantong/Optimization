@@ -84,12 +84,12 @@ data.W_k=W_k(1:flow(end));
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=4000;
+data.W_e=5000;
 data.W_re_e=ones(size(edge_cloud))*data.W_e;
 data.W_re_e=data.W_re_e.*(1-data.utilization);
 
 % remaining cache space in total
-data.W_re_t=40000;
+data.W_re_t=50000;
 
 % Delay paremeter
 flow_stable=1:NF_TOTAL;
@@ -106,7 +106,7 @@ data.C_l=2000;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-mid_array=[30,30,30,100,100,100,100,100,100,60000];
+mid_array=[30,30,50,50,100,100,100,100,10000,60000];
 data.delta=repmat(mid_array,1,10);
 
 % mobile user movement
@@ -116,12 +116,12 @@ for ii=1:flow(end)
 end
 data.probability=probability_ka;
 
-para.QoS_penalty=log(max(data.delta)+50-data.delta)*0.1;
+para.QoS_penalty=log(max(data.delta)-data.delta+50)*0.01;
 
 %% II. optimal solution
 buffer=zeros(NF,7);
 % parfor ii=1:NF
-parfor ii=1:NF
+parfor ii=1:(NF-6)
    buffer(ii,:)=MILP(flow_parallel{ii},data,para);
 end
 
@@ -131,24 +131,24 @@ result(1:NF,2:8)=buffer;
 data_cp=data;
 data_cp.probability=zeros(NF,length(data_cp.access_router));
 [~,I]=sort(data.probability,2,'descend');
-for ii=1:NF
+for ii=1:flow(end)
     data_cp.probability(ii,I(ii))=1;
 end
 buffer=zeros(NF,7);
 
-parfor ii=1:NF
+parfor ii=1:(NF-2)
    buffer(ii,:)=MILP(flow_parallel{ii},data_cp,para);
 end
 result(1:NF,38:43)=buffer(1:NF,2:7);
 %% IV. heuristic solution
 
 % Nearest Edge Cloud Caching
-buffer=zeros(NF,6);
-parfor ii=1:NF
-   buffer(ii,:)=NEC(flow_parallel{ii},data,para);
-end
-
-result(1:NF,10:15)=buffer;
+% buffer=zeros(NF,6);
+% parfor ii=1:NF
+%    buffer(ii,:)=NEC(flow_parallel{ii},data,para);
+% end
+% 
+% result(1:NF,10:15)=buffer;
 
 % Greedy Caching
 buffer=zeros(NF,6);
@@ -159,17 +159,18 @@ end
 result(1:NF,17:22)=buffer;
 
 % Randomized Greedy Caching
-buffer=zeros(NF,6);
-parfor ii=1:NF
-   buffer(ii,:)=RGR(flow_parallel{ii},data,para);
-end
-
-result(1:NF,24:29)=buffer;
+% buffer=zeros(NF,6);
+% parfor ii=1:NF
+%    buffer(ii,:)=RGR(flow_parallel{ii},data,para);
+% end
+% 
+% result(1:NF,24:29)=buffer;
 
 % Genetic Algorithm Caching
 buffer=zeros(NF,6);
+traceInfo=cell(10,1);
 parfor ii=1:NF
-   buffer(ii,:)=GAC(flow_parallel{ii},data,para);
+   [buffer(ii,:),traceInfo{ii}]=GAC(flow_parallel{ii},data,para);
 end
 
 result(1:NF,31:36)=buffer;
@@ -226,12 +227,13 @@ flow_plot=result(1:NF,1);
 figure(1);
 hold on;
 plot(flow_plot,cost_Monte_MILP,'-p','Color',[0.85,0.33,0.10],'LineWidth',1.6);
-plot(flow_plot,cost_Monte_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
+% plot(flow_plot,cost_Monte_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
 plot(flow_plot,cost_Monte_GA,'-+','Color',[0.30,0.75,0.93],'LineWidth',1.6);
 plot(flow_plot,cost_Monte_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',1.6);
+plot(flow_plot,cost_Monte_GRD,'-x','Color',[0.49,0.18,0.56],'LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Total cost');
-lgd=legend({'PCDG','RGC','GAC','Oracle'},...
+lgd=legend({'PCDG','GAC','Oracle','GRD'},...
     'location','northwest');
 % set(gca,'yscale','log');
 lgd.FontSize=12;
@@ -244,14 +246,14 @@ figure(2);
 hold on;
 plot(flow_plot,cost_Nocache,'-o','Color',[0.00,0.45,0.74],'LineWidth',1.6);
 plot(flow_plot,cost_Monte_MILP,'-p','Color',[0.85,0.33,0.10],'LineWidth',1.6);
-plot(flow_plot,cost_Monte_NEC,'-*','Color',[0.93,0.69,0.13],'LineWidth',1.6);
+% plot(flow_plot,cost_Monte_NEC,'-*','Color',[0.93,0.69,0.13],'LineWidth',1.6);
 plot(flow_plot,cost_Monte_GRD,'-x','Color',[0.49,0.18,0.56],'LineWidth',1.6);
-plot(flow_plot,cost_Monte_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
+% plot(flow_plot,cost_Monte_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
 plot(flow_plot,cost_Monte_GA,'-+','Color',[0.30,0.75,0.93],'LineWidth',1.6);
 plot(flow_plot, cost_Monte_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Monte Carlo cost');
-lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC','Oracle'},...
+lgd=legend({'Nocache','PCDG','GRC','GAC','Oracle'},...
     'location','northwest');
 set(lgd,'Box','off');
 % set(gca,'YTick',[0:50:250,500:500:2500]);
@@ -317,26 +319,28 @@ lgd.FontSize=12;
 % lgd.FontSize=12;
 % % applyhatch(gcf,'\/-x+',[]);
 
-outage_Monte_MILP=result(5:5:NF,8)./result(5:5:NF,1);
-outage_Monte_NEC=result(5:5:NF,15)./result(5:5:NF,1);
-outage_Monte_GRD=result(5:5:NF,22)./result(5:5:NF,1);
-outage_Monte_RGR=result(5:5:NF,29)./result(5:5:NF,1);
-outage_Monte_GA=result(5:5:NF,36)./result(5:5:NF,1);
-outage_Monte_Oracle=result(5:5:NF,43)./result(5:5:NF,1);
-Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
-    1-outage_Monte_RGR,1-outage_Monte_GA];
+outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
+% outage_Monte_NEC=result(2:4:NF,15)./result(2:4:NF,1);
+outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
+% outage_Monte_RGR=result(2:4:NF,29)./result(2:4:NF,1);
+outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
+% outage_Monte_Oracle=result(2:4:NF,43)./result(2:4:NF,1);
+% Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
+%     1-outage_Monte_RGR,1-outage_Monte_GA];
+Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_GRD,...
+    1-outage_Monte_GA];
 figure(4);
 b=bar(Monte_satis);
 b(1).FaceColor=[0.85,0.33,0.10];
-b(2).FaceColor=[0.93,0.69,0.13];
-b(3).FaceColor=[0.49,0.18,0.56];
-b(4).FaceColor=[0.47,0.67,0.19];
-b(5).FaceColor=[0.30,0.75,0.93];
+% b(2).FaceColor=[0.93,0.69,0.13];
+b(2).FaceColor=[0.49,0.18,0.56];
+% b(4).FaceColor=[0.47,0.67,0.19];
+b(3).FaceColor=[0.30,0.75,0.93];
 xlabel('Number of flows');
 ylabel('Satisfied probability');
 ylim([0,1.5]);
-set(gca,'xtick',[1:4],'xticklabel',{'50','100','150','200'});
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},'location','northwest');
+set(gca,'xtick',[1:4],'xticklabel',{'20','60','100'});
+lgd=legend({'PCDG','GRC','GAC'},'location','northwest');
 set(lgd,'Box','off');
 lgd.NumColumns=3;
 lgd.FontSize=12;
@@ -367,6 +371,16 @@ ylim([0,10^4]);
 lgd.FontSize=12;
 hold off;
 
+for ii=1:NF
+    figure(ii+5);
+    plot(traceInfo{ii}(:,1),traceInfo{ii}(:,3),'-p','LineWidth',1.6);
+    hold on;
+    plot(traceInfo{ii}(:,1),traceInfo{ii}(:,2),'-*','LineWidth',1.6);
+    xlabel('Generation'); ylabel('Fittness');
+    hold off;
+    lgd=legend({'Mean','Best'},'location','north');
+    lgd.FontSize=12;
+end
 % export result as xlsx in Windows
 % if ispc
 %     filename='OutPut\main.xlsx';

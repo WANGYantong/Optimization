@@ -44,7 +44,7 @@ end
 
 delay_time=zeros(1,NF);
 for ii=1:NF
-    delay_time(ii) =delay_edge(cache_allocate(ii))+delay_link(ii)+140*label(ii);
+    delay_time(ii) =delay_edge(cache_allocate(ii))+delay_link(ii)+100*label(ii);
 end
 
 end

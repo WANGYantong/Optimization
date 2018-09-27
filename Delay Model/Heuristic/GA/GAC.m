@@ -1,4 +1,4 @@
-function result = GAC(flow,data,para)
+function [result, traceInfo] = GAC(flow,data,para)
 %Genetic Algorithm
 %
 % encoding : binary array
@@ -27,7 +27,7 @@ data_buff=data;
 
 % termination parameter
 maxGen=50;
-maxCnt=30;
+maxCnt=50;
 epsilonTer=1e-6;
 
 % selection parameter
@@ -57,7 +57,7 @@ tic;
 initPop = initialize_ga(sizePop,'fitness',{para},[NF,num_ec],[1,seedRatio],sol_greed);
     
 %call genetic algorithm
-[x,~,~,~] = GO_ga('fitness',{para},initPop,[epsilon,display,gengap],...
+[x,~,~,traceInfo] = GO_ga('fitness',{para},initPop,[epsilon,display,gengap],...
     'optTerm_ga',[maxGen,maxCnt,epsilonTer],...
     'tournSelect_ga',[numTourn,ChampionPro],'shuffleXover_ga',[likelihoodXover,shuffleType],...
     'binaryMut_ga',[likelihoodMut]);
