@@ -106,7 +106,7 @@ data.C_l=2000;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-mid_array=[30,30,50,50,100,100,100,100,10000,60000];
+mid_array=[30,30,30,30,30,30,30,30,30,30];
 data.delta=repmat(mid_array,1,10);
 
 % mobile user movement
