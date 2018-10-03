@@ -26,7 +26,7 @@ for ii = 1:NF
         punish_buff(flow)=0;
         
         for kk = 1:length(list_ec)
-            if (Wsize(flow) < Rspace(list_ec(kk))) && (Rtotal > Wsize(flow))
+            if ((Wsize(flow)+1) < Rspace(list_ec(kk))) && (Rtotal >(Wsize(flow)+1)) % +1 avoid performance peak
                 cache_node(flow) = list_ec(kk);
                 ar_list(flow) = ar;
                 Rspace(list_ec(kk)) = Rspace(list_ec(kk)) - Wsize(flow);

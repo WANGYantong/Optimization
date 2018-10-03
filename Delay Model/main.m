@@ -244,22 +244,23 @@ hold off;
 figure(2);
 % axis auto normal;
 hold on;
-plot(flow_plot,cost_Nocache,'-o','Color',[0.00,0.45,0.74],'LineWidth',1.6);
-plot(flow_plot,cost_Monte_MILP,'-p','Color',[0.85,0.33,0.10],'LineWidth',1.6);
+plot(flow_plot,cost_Nocache,'-o','Color',[0.00,0.45,0.74],'LineWidth',3.2,'MarkerSize',10);
 % plot(flow_plot,cost_Monte_NEC,'-*','Color',[0.93,0.69,0.13],'LineWidth',1.6);
-plot(flow_plot,cost_Monte_GRD,'-x','Color',[0.49,0.18,0.56],'LineWidth',1.6);
+plot(flow_plot,cost_Monte_GRD,'-*','Color',[0.93,0.69,0.13],'LineWidth',3.2,'MarkerSize',10);
 % plot(flow_plot,cost_Monte_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
-plot(flow_plot,cost_Monte_GA,'-+','Color',[0.30,0.75,0.93],'LineWidth',1.6);
-plot(flow_plot, cost_Monte_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',1.6);
-xlabel('Number of flows');
-ylabel('Monte Carlo cost');
-lgd=legend({'Nocache','PCDG','GRC','GAC','Oracle'},...
+plot(flow_plot,cost_Monte_GA,'-s','Color',[0.47,0.67,0.19],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_Monte_MILP,'-p','Color',[0.30,0.75,0.93],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot, cost_Monte_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'Nocache','GRC','GAC','PCDG','Oracle'},...
     'location','northwest');
-set(lgd,'Box','off');
+% set(lgd,'Box','off');
+set(gca,'fontsize',24);
 % set(gca,'YTick',[0:50:250,500:500:2500]);
 % set(gca,'yscale','log');
-% xlim([1,20]);
-lgd.FontSize=12;
+ylim([0,1050]);
+lgd.FontSize=24;
 grid on;
 hold off;
 
@@ -319,32 +320,30 @@ lgd.FontSize=12;
 % lgd.FontSize=12;
 % % applyhatch(gcf,'\/-x+',[]);
 
-outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
-% outage_Monte_NEC=result(2:4:NF,15)./result(2:4:NF,1);
 outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
+% outage_Monte_NEC=result(2:4:NF,15)./result(2:4:NF,1);
 % outage_Monte_RGR=result(2:4:NF,29)./result(2:4:NF,1);
 outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
+outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
 % outage_Monte_Oracle=result(2:4:NF,43)./result(2:4:NF,1);
 % Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
 %     1-outage_Monte_RGR,1-outage_Monte_GA];
-Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_GRD,...
-    1-outage_Monte_GA];
+Monte_satis=[1-outage_Monte_GRD,...
+    1-outage_Monte_GA,1-outage_Monte_MILP];
 figure(4);
 b=bar(Monte_satis);
-b(1).FaceColor=[0.85,0.33,0.10];
-% b(2).FaceColor=[0.93,0.69,0.13];
-b(2).FaceColor=[0.49,0.18,0.56];
-% b(4).FaceColor=[0.47,0.67,0.19];
+b(1).FaceColor=[0.93,0.69,0.13];
+b(2).FaceColor=[0.47,0.67,0.19];
 b(3).FaceColor=[0.30,0.75,0.93];
 xlabel('Number of flows');
 ylabel('Satisfied probability');
 ylim([0,1.5]);
-set(gca,'xtick',[1:4],'xticklabel',{'20','60','100'});
-lgd=legend({'PCDG','GRC','GAC'},'location','northwest');
-set(lgd,'Box','off');
+set(gca,'xtick',[1:5],'xticklabel',{'20','40','60','80','100'},'fontsize',24);
+lgd=legend({'GRC','GAC','PCDG'},'location','north');
+% set(lgd,'Box','off');
 lgd.NumColumns=3;
-lgd.FontSize=12;
-applyhatch(gcf,'\/-x+',[]);
+lgd.FontSize=24;
+applyhatch(gcf,'\/x',[]);
 
 runtime_MILP=result(1:NF,6);
 runtime_NEC=result(1:NF,13);
@@ -373,13 +372,14 @@ hold off;
 
 for ii=1:NF
     figure(ii+5);
-    plot(traceInfo{ii}(:,1),traceInfo{ii}(:,3),'-p','LineWidth',1.6);
+    plot(traceInfo{ii}(:,1),traceInfo{ii}(:,3),'-p','LineWidth',3.2,'MarkerSize',10);
     hold on;
-    plot(traceInfo{ii}(:,1),traceInfo{ii}(:,2),'-*','LineWidth',1.6);
+    plot(traceInfo{ii}(:,1),traceInfo{ii}(:,2),'-*','LineWidth',3.2,'MarkerSize',10);
     xlabel('Generation'); ylabel('Fittness');
     hold off;
     lgd=legend({'Mean','Best'},'location','north');
-    lgd.FontSize=12;
+    set(gca,'fontsize',24);
+    lgd.FontSize=24;
 end
 % export result as xlsx in Windows
 % if ispc
@@ -387,6 +387,122 @@ end
 %     xlswrite(filename,result);
 % end
 
+% probability sensitive
+% not mention the specific distribution, define a function with veriation,
+% represent pre-knowledge
+%PCDG
+pro_cost=xlsread('OutPut\3rd\pro_cost.xlsx');
+cost_PCDG_1=pro_cost(1:NF,2);
+cost_PCDG_2=pro_cost(1:NF,3);
+cost_PCDG_3=pro_cost(1:NF,4);
+cost_PCDG_4=pro_cost(1:NF,5);
+figure(16);hold on;
+flow_plot=pro_cost(1:NF,1);
+plot(flow_plot,cost_PCDG_1,'-*','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_PCDG_2,'-s','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_PCDG_3,'-p','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_PCDG_4,'-^','LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'Uniform','Gaussian-1','Gaussian-0.5','Oracle'},'location','northwest');
+set(gca,'fontsize',24);
+lgd.FontSize=24;
+grid on;
+hold off;
+%GRD
+cost_GRD_1=pro_cost(1:NF,7);
+cost_GRD_2=pro_cost(1:NF,8);
+cost_GRD_3=pro_cost(1:NF,9);
+cost_GRD_4=pro_cost(1:NF,10);
+figure(17);hold on;
+flow_plot=pro_cost(1:NF,1);
+plot(flow_plot,cost_GRD_1,'-*','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GRD_2,'-s','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GRD_3,'-p','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GRD_4,'-^','LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'Uniform','Gaussian-1','Gaussian-0.5','Oracle'},'location','northwest');
+set(gca,'fontsize',24);
+lgd.FontSize=24;
+grid on;
+hold off;
+%GAC
+cost_GAC_1=pro_cost(1:NF,12);
+cost_GAC_2=pro_cost(1:NF,13);
+cost_GAC_3=pro_cost(1:NF,14);
+cost_GAC_4=pro_cost(1:NF,15);
+figure(18);hold on;
+flow_plot=pro_cost(1:NF,1);
+plot(flow_plot,cost_GAC_1,'-*','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GAC_2,'-s','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GAC_3,'-p','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GAC_4,'-^','LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'Uniform','Gaussian-1','Gaussian-0.5','Oracle'},'location','northwest');
+set(gca,'fontsize',24);
+lgd.FontSize=24;
+grid on;
+hold off;
+
+%task sensitive
+result_30_1=xlsread('OutPut\3rd\main_30_1.xlsx');
+result_30_4=xlsread('OutPut\3rd\main_30_4.xlsx');
+result_30_7=xlsread('OutPut\3rd\main_30_7.xlsx');
+result_30_10=xlsread('OutPut\3rd\main_30_10.xlsx');
+%PCDG
+cost_PCDG_30_1=result_30_1(1:NF,7);
+cost_PCDG_30_4=result_30_4(1:NF,7);
+cost_PCDG_30_7=result_30_7(1:NF,7);
+cost_PCDG_30_10=result_30_10(1:NF,7);
+figure(19);hold on;
+flow_plot=result_30_1(1:NF,1);
+plot(flow_plot,cost_PCDG_30_1,'-*','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_PCDG_30_4,'-s','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_PCDG_30_7,'-p','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_PCDG_30_10,'-^','LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'10%sensitive task','40%sensitive task','70%sensitive task','100%sensitive task'},'location','northwest');
+set(gca,'fontsize',24);
+lgd.FontSize=24;
+grid on;
+hold off;
+%GRD
+cost_GRD_30_1=result_30_1(1:NF,21);
+cost_GRD_30_4=result_30_4(1:NF,21);
+cost_GRD_30_7=result_30_7(1:NF,21);
+cost_GRD_30_10=result_30_10(1:NF,21);
+figure(20);hold on;
+plot(flow_plot,cost_GRD_30_1,'-*','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GRD_30_4,'-s','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GRD_30_7,'-p','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GRD_30_10,'-^','LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'10%sensitive task','40%sensitive task','70%sensitive task','100%sensitive task'},'location','northwest');
+set(gca,'fontsize',24);
+lgd.FontSize=24;
+grid on;
+hold off;
+%GAC
+cost_GAC_30_1=result_30_1(1:NF,35);
+cost_GAC_30_4=result_30_4(1:NF,35);
+cost_GAC_30_7=result_30_7(1:NF,35);
+cost_GAC_30_10=result_30_10(1:NF,35);
+figure(21);hold on;
+plot(flow_plot,cost_GAC_30_1,'-*','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GAC_30_4,'-s','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GAC_30_7,'-p','LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_GAC_30_10,'-^','LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Monte Carlo cost','FontSize',24);
+lgd=legend({'10%sensitive task','40%sensitive task','70%sensitive task','100%sensitive task'},'location','northwest');
+set(gca,'fontsize',24);
+lgd.FontSize=24;
+grid on;
+hold off;
 % ec_congestion=xlsread('OutPut\ec_congestion.xlsx');
 % boxplot(ec_congestion,'Labels',{'NEC','GRC','RGC','GAC','PCDG'});
 % title('Edge Cloud Congestion after Caching Assignment (flow=20)');
