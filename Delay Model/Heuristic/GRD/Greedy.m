@@ -32,20 +32,23 @@ for ii = 1:NF
                 Rspace(list_ec(kk)) = Rspace(list_ec(kk)) - Wsize(flow);
                 Rtotal = Rtotal - Wsize(flow);
                 utilization(cache_node(flow))=(Fullspace-Rspace(cache_node(flow)))/Fullspace;
-                label_found=1;
+                label_found(ii)=1;
                 break
             end
         end
-        if(label_found==1)
+        if(label_found(ii)==1)
             break
         end
     end
-    if (label_found==1)
-        cache_cost=1/(1-utilization(cache_node(flow)));
+end
+
+for ii=1:NF
+    if (label_found(ii)==1)
+        cache_cost=1/(1-utilization(cache_node(ii)));
               
         cache_hit_cost=0;
         for jj=1:length(access_routers)
-            [~,path_cost]=shortestpath(graph,access_routers(jj),edge_clouds(cache_node(flow)));
+            [~,path_cost]=shortestpath(graph,access_routers(jj),edge_clouds(cache_node(ii)));
             cache_hit_cost=cache_hit_cost+probability(ii,access_routers(jj))*path_cost;
         end
         

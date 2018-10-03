@@ -33,7 +33,7 @@ for ii=1:NF
 end
 
 % weight of cache cost
-para.alpha=10;
+para.alpha=50;
 % weight of path cost
 para.beta=10;
 % weight of cache miss
@@ -106,7 +106,7 @@ data.C_l=2000;
 % delta=[50,100,150];
 % data.delta=randi(3,1,NF);
 % data.delta=delta(data.delta);
-mid_array=[30,30,30,30,30,30,30,30,30,30];
+mid_array=[30,30,30,100,100,10000,10000,10000,10000,10000];
 data.delta=repmat(mid_array,1,10);
 
 % mobile user movement
