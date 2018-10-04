@@ -346,27 +346,24 @@ lgd.FontSize=24;
 applyhatch(gcf,'\/x',[]);
 
 runtime_MILP=result(1:NF,6);
-runtime_NEC=result(1:NF,13);
+% runtime_NEC=result(1:NF,13);
 runtime_GRD=result(1:NF,20);
-runtime_RGR=result(1:NF,27);
+% runtime_RGR=result(1:NF,27);
 runtime_GA=result(1:NF,34);
 % runtime_Oracle=result(1:NF,41);
 figure(5);
 hold on;
-plot(flow_plot,runtime_MILP,'-p','Color',[0.85,0.33,0.10],'LineWidth',1.6);
-plot(flow_plot,runtime_NEC,'-*','Color',[0.93,0.69,0.13],'LineWidth',1.6);
-plot(flow_plot,runtime_GRD,'-x','Color',[0.49,0.18,0.56],'LineWidth',1.6);
-plot(flow_plot,runtime_RGR,'-s','Color',[0.47,0.67,0.19],'LineWidth',1.6);
-plot(flow_plot,runtime_GA,'-+','Color',[0.30,0.75,0.93],'LineWidth',1.6);
-% plot(flow_plot,runtime_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',1.6);
+plot(flow_plot,runtime_GRD,'-x','Color',[0.93,0.69,0.13],'LineWidth',1.6);
+plot(flow_plot,runtime_GA,'-+','Color',[0.47,0.67,0.19],'LineWidth',1.6);
+plot(flow_plot,runtime_MILP,'-p','Color',[0.30,0.75,0.93],'LineWidth',1.6);
 xlabel('Number of flows');
 ylabel('Running time (s)');
-lgd=legend({'PCDG','NEC','GRC','RGC','GAC'},...
+lgd=legend({'GRC','GAC','PCDG'},...
     'location','north');
 set(gca,'yscale','log');
 set(lgd,'Box','off');
 lgd.NumColumns=3;
-ylim([0,10^4]);
+ylim([0,10^3]);
 lgd.FontSize=12;
 hold off;
 

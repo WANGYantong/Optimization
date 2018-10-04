@@ -27,7 +27,7 @@ data_buff=data;
 
 % termination parameter
 maxGen=50;
-maxCnt=50;
+maxCnt=30;
 epsilonTer=1e-6;
 
 % selection parameter
