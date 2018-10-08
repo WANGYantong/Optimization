@@ -36,7 +36,7 @@ switch opts
         
         
     case 3
-        y=[0.0044,0.0440,0.1420,0.6236,0.1420,0.0440];
+        y=[0.0014,0.0270,0.1420,0.6636,0.1420,0.0240];
         index=randperm(6);
         for ii=1:numel(targets)-1
             probability_ka(targets(ii))=y(index(ii));
