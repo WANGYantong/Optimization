@@ -163,8 +163,8 @@ ProCache.Constraints.edge_stable_constr=edge_stable_constr;
 
 %% solve the problem using MILP
 
-opts=optimoptions('intlinprog','Display','off','MaxTime',72000);
-% opts=optimoptions('intlinprog','Display','off');
+opts=optimoptions('intlinprog','Display','off','MaxTime',720000);
+% opts=optimoptions('intlinprog','Display','off','MaxIterations',20000000);
 
 % timer for MILP
 tic;

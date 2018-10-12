@@ -121,8 +121,9 @@ para.QoS_penalty=log(max(data.delta)-data.delta+50)*0.01;
 %% II. optimal solution
 buffer=zeros(NF,7);
 % parfor ii=1:NF
-parfor ii=1:(NF-6)
+parfor ii=1:NF
    buffer(ii,:)=MILP(flow_parallel{ii},data,para);
+   buffer(ii,:)
 end
 
 result(1:NF,2:8)=buffer;
@@ -353,18 +354,18 @@ runtime_GA=result(1:NF,34);
 % runtime_Oracle=result(1:NF,41);
 figure(5);
 hold on;
-plot(flow_plot,runtime_GRD,'-x','Color',[0.93,0.69,0.13],'LineWidth',1.6);
-plot(flow_plot,runtime_GA,'-+','Color',[0.47,0.67,0.19],'LineWidth',1.6);
-plot(flow_plot,runtime_MILP,'-p','Color',[0.30,0.75,0.93],'LineWidth',1.6);
+plot(flow_plot,runtime_GRD,'-x','Color',[0.93,0.69,0.13],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,runtime_GA,'-+','Color',[0.47,0.67,0.19],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,runtime_MILP,'-p','Color',[0.30,0.75,0.93],'LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows');
 ylabel('Running time (s)');
 lgd=legend({'GRC','GAC','PCDG'},...
     'location','north');
-set(gca,'yscale','log');
-set(lgd,'Box','off');
+set(gca,'yscale','log','fontsize',24);
+% set(lgd,'Box','off');
 lgd.NumColumns=3;
 ylim([0,10^3]);
-lgd.FontSize=12;
+lgd.FontSize=24;
 hold off;
 
 for ii=1:NF

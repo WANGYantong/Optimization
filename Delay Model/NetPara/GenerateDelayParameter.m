@@ -12,13 +12,14 @@ R_k=randi([1,10],size(flow_stable));
 % ce(5:6)=6;
 % ce(9)=6;
 % ce(7:8)=8;
-ce=ones(size(edge_cloud))*4;
+ce=ones(size(edge_cloud))*8;
 
 % each server service rate
 % assuming service rates for different flows are same
 % mu=poissrnd(1,1,length(edge_cloud))+1;
 % mu=[1.5,1,1,1,1,1,1.5,1.5,1,1]+0.5;
 % mu=[1.5,1,1,1,1,1,1.5,1.5,1,1];
+% mu=[2,2,2,2,3,3,4,4,3]+0.5;
 mu=[2,2,2,2,3,3,4,4,3]+0.5;
 
 end
