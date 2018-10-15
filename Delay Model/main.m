@@ -84,12 +84,12 @@ data.W_k=W_k(1:flow(end));
 data.utilization=GenerateUtilization(edge_cloud);
 
 % remaining cache space for each edge cloud
-data.W_e=5000;
+data.W_e=8000;
 data.W_re_e=ones(size(edge_cloud))*data.W_e;
 data.W_re_e=data.W_re_e.*(1-data.utilization);
 
 % remaining cache space in total
-data.W_re_t=50000;
+data.W_re_t=80000;
 
 % Delay paremeter
 flow_stable=1:NF_TOTAL;
@@ -253,7 +253,7 @@ plot(flow_plot,cost_Monte_GA,'-s','Color',[0.47,0.67,0.19],'LineWidth',3.2,'Mark
 plot(flow_plot,cost_Monte_MILP,'-p','Color',[0.30,0.75,0.93],'LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot, cost_Monte_Oracle,'-^','Color',[0.64,0.08,0.18],'LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'Nocache','GRC','GAC','PCDG','Oracle'},...
     'location','northwest');
 % set(lgd,'Box','off');
@@ -401,7 +401,7 @@ plot(flow_plot,cost_PCDG_2,'-s','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_PCDG_3,'-p','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_PCDG_4,'-^','LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'H=2.58','H=1.96','H=1.48','H=0'},'location','northwest');
 set(gca,'fontsize',24);
 lgd.FontSize=24;
@@ -419,7 +419,7 @@ plot(flow_plot,cost_GRD_2,'-s','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GRD_3,'-p','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GRD_4,'-^','LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'H=2.58','H=1.96','H=1.48','H=0'},'location','northwest');
 set(gca,'fontsize',24);
 lgd.FontSize=24;
@@ -437,7 +437,7 @@ plot(flow_plot,cost_GAC_2,'-s','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GAC_3,'-p','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GAC_4,'-^','LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'H=2.58','H=1.96','H=1.48','H=0'},'location','northwest');
 set(gca,'fontsize',24);
 lgd.FontSize=24;
@@ -461,7 +461,7 @@ plot(flow_plot,cost_PCDG_30_4,'-s','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_PCDG_30_7,'-p','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_PCDG_30_10,'-^','LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'R_\tau=0.1','R_\tau=0.4','R_\tau=0.7','R_\tau=1'},'location','northwest');
 set(gca,'fontsize',24);
 lgd.FontSize=24;
@@ -478,7 +478,7 @@ plot(flow_plot,cost_GRD_30_4,'-s','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GRD_30_7,'-p','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GRD_30_10,'-^','LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'R_\tau=0.1','R_\tau=0.4','R_\tau=0.7','R_\tau=1'},'location','northwest');
 set(gca,'fontsize',24);
 lgd.FontSize=24;
@@ -495,7 +495,7 @@ plot(flow_plot,cost_GAC_30_4,'-s','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GAC_30_7,'-p','LineWidth',3.2,'MarkerSize',10);
 plot(flow_plot,cost_GAC_30_10,'-^','LineWidth',3.2,'MarkerSize',10);
 xlabel('Number of flows','FontSize',24);
-ylabel('Monte Carlo cost','FontSize',24);
+ylabel('Total cost','FontSize',24);
 lgd=legend({'R_\tau=0.1','R_\tau=0.4','R_\tau=0.7','R_\tau=1'},'location','northwest');
 set(gca,'fontsize',24);
 lgd.FontSize=24;
