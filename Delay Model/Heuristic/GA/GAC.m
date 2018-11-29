@@ -21,27 +21,27 @@ data.probability=data.probability(1:NF,:);
 
 num_ec=length(data.edge_cloud);
 
-result=zeros(1,6);
+result=cell(1,8);
 
 data_buff=data;
 
 % termination parameter
-maxGen=50;
+maxGen=100;
 maxCnt=30;
 epsilonTer=1e-6;
 
 % selection parameter
-numTourn=6;
+numTourn=50;
 ChampionPro=0.5;
 
 % Xover and mutation parameter
 shuffleType=0;
-likelihoodXover=0.8;
-likelihoodMut=0.005;
+likelihoodXover=0.9;
+likelihoodMut=0.01;
 
 % population size
 % sizePop=30+floor(NF/5)*10;
-sizePop=30;
+sizePop=100;
 seedRatio=0.1;
 
 % GA parameter
@@ -64,13 +64,18 @@ initPop = initialize_ga(sizePop,'fitness',{para},[NF,num_ec],[1,seedRatio],sol_g
 run_time=toc;
 
 vector=decoding_ga(x{1});
-[result(2),result(3)]=fitness_mod(vector,data,para);
+[result{2},result{3}]=fitness_mod(vector,data,para);
 
-result(1)=x{2};
-result(4)=run_time;
+result{1}=x{2};
+result{4}=run_time;
+
+[edge_jam,link_jam]=JamCalculator(flow,x{1},data);
+result{7}=edge_jam;
+result{8}=link_jam;
 
 buff=MonteCarlo(flow,vector,data,para);
-result(1,5:6)=buff;
+result{5}=buff(1);
+result{6}=buff(2);
 
 % result(7)=trace(end,1); %convergence generation
 %convergence figure

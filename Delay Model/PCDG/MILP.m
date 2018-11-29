@@ -1,7 +1,7 @@
 function [result] = MILP(flow,data,para)
 
 NF=length(flow);
-result=zeros(1,7);
+result=cell(1,9);
 
 %% parameter tailor
 data.W_k=data.W_k(1:NF);
@@ -163,7 +163,7 @@ ProCache.Constraints.edge_stable_constr=edge_stable_constr;
 
 %% solve the problem using MILP
 
-opts=optimoptions('intlinprog','Display','off','MaxTime',3600*50);
+opts=optimoptions('intlinprog','Display','off','MaxTime',3600*3);
 % opts=optimoptions('intlinprog','Display','off','MaxIterations',20000000);
 
 % timer for MILP
@@ -238,16 +238,21 @@ for ii=1:NF
     end
 end
 
-result(1,1)=sum(midterm);
-result(1,2)=total_cost_add;
-result(1,3)=total_cost_add-total_cost;
-result(1,4)=failed_number;
-result(1,5)=MILP_time;
+[edge_jam,link_jam]=JamCalculator(flow,sol.x,data);
+
+result{1}=sum(midterm);
+result{2}=total_cost_add;
+result{3}=total_cost_add-total_cost;
+result{4}=failed_number;
+result{5}=MILP_time;
+result{8}=edge_jam;
+result{9}=link_jam;
 
 %% Monte Carlo test
 
 buff=MonteCarlo(flow,solution,data,para);
-result(1,6:7)=buff;
+result{6}=buff(1);
+result{7}=buff(2);
 
 end
 

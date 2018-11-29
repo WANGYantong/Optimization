@@ -16,10 +16,10 @@ end
 %%%%%%%% generate analysis variables %%%%%%%%
 step=10;
 % each flow reprerents a mobile user
-flow=1:100;
+flow=1:60;
 NF=length(flow)/step;
 % for stable, like rng
-NF_TOTAL=100;
+NF_TOTAL=60;
 % flow_parallel=cell(size(flow));
 flow_parallel=cell(NF,1);
 for ii=1:NF
@@ -27,13 +27,13 @@ for ii=1:NF
 end
 
 % store result
-result=zeros(NF,43);
+result=cell(NF,55);
 for ii=1:NF
-    result(ii,1)=ii*step;
+    result{ii,1}=ii*step;
 end
 
 % weight of cache cost
-para.alpha=50;
+para.alpha=5;
 % weight of path cost
 para.beta=10;
 % weight of cache miss
@@ -55,7 +55,7 @@ data.edge_cloud=edge_cloud;
 % data.router=[router1,router2,router3,router4];
 % data.edge_cloud=edge_cloud;
 
-idx=[data.router,data.access_router];
+idx=[data.access_router,data.router];
 G_sub=subgraph(G_full,idx);
 data.graph=G_sub;
 % data.graph=G_full;
@@ -81,11 +81,12 @@ W_k=GenerateItemsSize(NF_TOTAL)';
 data.W_k=W_k(1:flow(end));
 
 % original utilization
-data.utilization=GenerateUtilization(edge_cloud);
+% data.utilization=GenerateUtilization(edge_cloud);
+data.utilization=zeros(size(edge_cloud));
 
 % remaining cache space for each edge cloud
 data.W_e=8000;
-data.W_re_e=ones(size(edge_cloud))*data.W_e;
+data.W_re_e=ones(size(edge_cloud))*data.W_e-3000;
 data.W_re_e=data.W_re_e.*(1-data.utilization);
 
 % remaining cache space in total
@@ -119,62 +120,68 @@ data.probability=probability_ka;
 para.QoS_penalty=log(max(data.delta)-data.delta+50)*0.01;
 
 %% II. optimal solution
-buffer=zeros(NF,7);
-% parfor ii=1:NF
+buffer=cell(NF,9);
 parfor ii=1:NF
    buffer(ii,:)=MILP(flow_parallel{ii},data,para);
-   buffer(ii,:)
 end
 
-result(1:NF,2:8)=buffer;
+result(:,2:10)=buffer;
 
 %% III. Oracle solution
-data_cp=data;
-data_cp.probability=zeros(NF,length(data_cp.access_router));
-[~,I]=sort(data.probability,2,'descend');
-for ii=1:flow(end)
-    data_cp.probability(ii,I(ii))=1;
-end
-buffer=zeros(NF,7);
-
-parfor ii=1:(NF-2)
-   buffer(ii,:)=MILP(flow_parallel{ii},data_cp,para);
-end
-result(1:NF,38:43)=buffer(1:NF,2:7);
+% data_cp=data;
+% data_cp.probability=zeros(NF,length(data_cp.access_router));
+% [~,I]=sort(data.probability,2,'descend');
+% for ii=1:flow(end)
+%     data_cp.probability(ii,I(ii))=1;
+% end
+% buffer=cell(NF,9);
+% 
+% parfor ii=1:NF
+%    buffer(ii,:)=MILP(flow_parallel{ii},data_cp,para);
+% end
+% result(:,48:55)=buffer(:,2:9);
 %% IV. heuristic solution
 
 % Nearest Edge Cloud Caching
-% buffer=zeros(NF,6);
+% buffer=cell(NF,8);
 % parfor ii=1:NF
 %    buffer(ii,:)=NEC(flow_parallel{ii},data,para);
 % end
 % 
-% result(1:NF,10:15)=buffer;
+% result(:,12:19)=buffer;
 
 % Greedy Caching
-buffer=zeros(NF,6);
+buffer=cell(NF,8);
 parfor ii=1:NF
    buffer(ii,:)=GRD(flow_parallel{ii},data,para);
 end
 
-result(1:NF,17:22)=buffer;
+result(:,21:28)=buffer;
 
 % Randomized Greedy Caching
-% buffer=zeros(NF,6);
+% buffer=cell(NF,8);
 % parfor ii=1:NF
 %    buffer(ii,:)=RGR(flow_parallel{ii},data,para);
 % end
 % 
-% result(1:NF,24:29)=buffer;
+% result(:,30:37)=buffer;
 
 % Genetic Algorithm Caching
-buffer=zeros(NF,6);
-traceInfo=cell(10,1);
+% buffer=cell(NF,8);
+% traceInfo=cell(10,1);
+% parfor ii=1:NF
+%    [buffer(ii,:),traceInfo{ii}]=GAC(flow_parallel{ii},data,para);
+% end
+% 
+% result(:,39:46)=buffer;
+
+% All Caching
+buffer=cell(NF,8);
 parfor ii=1:NF
-   [buffer(ii,:),traceInfo{ii}]=GAC(flow_parallel{ii},data,para);
+   buffer(ii,:)=ALC(flow_parallel{ii},data,para);
 end
 
-result(1:NF,31:36)=buffer;
+result(:,57:64)=buffer;
 
 %% result comparision
 
@@ -183,47 +190,49 @@ result(1:NF,31:36)=buffer;
 %
 % 3  PCDG cost; 4 PCDG penalty; 5 PCDG failed number; 6 PCDG running time; 
 % 7  PCDG Monte Carlo Cost; 8 PCDG Monte Carlo failed number;
-% 9 
-% 10 NEC cost; 11 NEC penalty; 12 NEC failed number; 13 NEC running time; 
-% 14 NEC Monte Carlo Cost; 15 NEC Monte Carlo failed number;
-% 16 
-% 17 GRC cost; 18 GRC penalty; 19 GRC failed number; 20 GRC running time; 
-% 21 GRC Monte Carlo Cost; 22 GRC Monte Carlo failed number;
-% 23
-% 24 RGC cost; 25 RGC penalty; 26 RGC failed number; 27 RGC running time; 
-% 28 RGC Monte Carlo Cost; 29 RGC Monte Carlo failed number;
-% 30
-% 31 GAC cost; 32 GAC penalty; 33 GAC failed number; 34 GAC running time; 
-% 35 GAC Monte Carlo Cost; 36 GAC Monte Carlo failed number;
-% 37
-% 38 Oracle cost; 39 Oracle penalty; 40 Oracle failed number; 41 Oracle
-% running time; 42 Oracle Monte Carlo Cost; 43 Oracle Monte Carlo failed
-% number
+% 9  PCDG edge jam; 10 PCDG link jam 
+% 11
+% 12 NEC cost; 13 NEC penalty; 14 NEC failed number; 15 NEC running time; 
+% 16 NEC Monte Carlo Cost; 17 NEC Monte Carlo failed number;
+% 18 NEC edge jam; 19 NEC link jam
+% 20
+% 21 GRC cost; 22 GRC penalty; 23 GRC failed number; 24 GRC running time; 
+% 25 GRC Monte Carlo Cost; 26 GRC Monte Carlo failed number;
+% 27 GRC edge jam; 28 GRC link jam
+% 29
+% 30 RGC cost; 31 RGC penalty; 32 RGC failed number; 33 RGC running time; 
+% 34 RGC Monte Carlo Cost; 35 RGC Monte Carlo failed number;
+% 36 RGC edge jam; 37 RGC link jam
+% 38
+% 39 GAC cost; 40 GAC penalty; 41 GAC failed number; 42 GAC running time; 
+% 43 GAC Monte Carlo Cost; 44 GAC Monte Carlo failed number;
+% 45 GAC edge jam; 46 GAC link jam
+% 47
+% 48 Oracle cost; 49 Oracle penalty; 50 Oracle failed number; 51 Oracle
+% running time; 52 Oracle Monte Carlo Cost; 53 Oracle Monte Carlo failed
+% number; 54 Oracle edge jam; 55 Oracle link jam
+% 56
+% 57 AllCache cost; 58 AllCache penalty; 59 AllCache failed number; 
+% 60 AllCache running time; 61 AllCache Monte Carlo Cost; 62 AllCache Monte
+% Carlo failed number; 63 AllCache edge jam; 64 AllCache link jam
 
-cost_Nocache=result(1:NF,2);
-cost_MILP=result(1:NF,3);
-cost_NEC=result(1:NF,10);
-cost_GRD=result(1:NF,17);
-cost_RGR=result(1:NF,24);
-cost_GA=result(1:NF,31);
-cost_Oracle=result(1:NF,38);
-cost_Monte_MILP=result(1:NF,7);
-cost_Monte_NEC=result(1:NF,14);
-cost_Monte_GRD=result(1:NF,21);
-cost_Monte_RGR=result(1:NF,28);
-cost_Monte_GA=result(1:NF,35);
-cost_Monte_Oracle=result(1:NF,42);
+flow_plot=cell2mat(result(1:NF,1));
 
-% figure(1);
-% plot(flow,cost_Nocache,':o',flow,cost_MILP,'-p',flow,cost_NEC,'-*',...
-%     flow,cost_GRD,'-x',flow,cost_RGR,'-s',flow,cost_GA,'-+',...
-%     'LineWidth',1.6);
-% xlabel('number of flows');
-% ylabel('total cost');
-% lgd=legend({'Nocache','PCDG','NEC','GRC','RGC','GAC'},...
-%     'location','northwest');
-% lgd.FontSize=12;
-flow_plot=result(1:NF,1);
+cost_Nocache=cell2mat(result(1:NF,2));
+cost_MILP=cell2mat(result(1:NF,3));
+% cost_NEC=cell2mat(result(1:NF,12));
+cost_GRD=cell2mat(result(1:NF,21));
+% cost_RGR=cell2mat(result(1:NF,30));
+% cost_GA=cell2mat(result(1:NF,39));
+% cost_Oracle=cell2mat(result(1:NF,48));
+cost_AllCache=cell2mat(result(1:NF,57));
+
+cost_Monte_MILP=cell2mat(result(1:NF,7));
+% cost_Monte_NEC=cell2mat(result(1:NF,16));
+cost_Monte_GRD=cell2mat(result(1:NF,25));
+% cost_Monte_RGR=cell2mat(result(1:NF,34));
+% cost_Monte_GA=cell2mat(result(1:NF,43));
+% cost_Monte_Oracle=cell2mat(result(1:NF,52));
 
 figure(1);
 hold on;
@@ -261,6 +270,22 @@ set(gca,'fontsize',24);
 % set(gca,'YTick',[0:50:250,500:500:2500]);
 % set(gca,'yscale','log');
 ylim([0,1050]);
+lgd.FontSize=24;
+grid on;
+hold off;
+
+figure(2);
+% axis auto normal;
+hold on;
+plot(flow_plot,cost_Nocache/5,'-o','Color',[0.00,0.45,0.74],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_AllCache,'-s','Color',[0.49,0.18,0.56],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_Monte_GRD,'-*','Color',[0.93,0.69,0.13],'LineWidth',3.2,'MarkerSize',10);
+plot(flow_plot,cost_Monte_MILP,'-p','Color',[0.30,0.75,0.93],'LineWidth',3.2,'MarkerSize',10);
+xlabel('Number of flows','FontSize',24);
+ylabel('Total cost','FontSize',24);
+lgd=legend({'No Cache','All Cache','GRC','PCDG'},...
+    'location','northwest');
+set(gca,'fontsize',24);
 lgd.FontSize=24;
 grid on;
 hold off;
@@ -321,28 +346,31 @@ lgd.FontSize=12;
 % lgd.FontSize=12;
 % % applyhatch(gcf,'\/-x+',[]);
 
-outage_Monte_GRD=result(2:2:NF,22)./result(2:2:NF,1);
+outage_No_Cache=ones(NF,1)*0.5;
+outage_Monte_GRD=cell2mat(result(1:NF,26))./cell2mat(result(1:NF,1));
 % outage_Monte_NEC=result(2:4:NF,15)./result(2:4:NF,1);
 % outage_Monte_RGR=result(2:4:NF,29)./result(2:4:NF,1);
-outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
-outage_Monte_MILP=result(2:2:NF,8)./result(2:2:NF,1);
+% outage_Monte_GA=result(2:2:NF,36)./result(2:2:NF,1);
+outage_All_Cache=cell2mat(result(1:NF,59))./cell2mat(result(1:NF,1));
+outage_Monte_MILP=cell2mat(result(1:NF,8))./cell2mat(result(1:NF,1));
 % outage_Monte_Oracle=result(2:4:NF,43)./result(2:4:NF,1);
 % Monte_satis=[1-outage_Monte_MILP,1-outage_Monte_NEC,1-outage_Monte_GRD,...
 %     1-outage_Monte_RGR,1-outage_Monte_GA];
-Monte_satis=[1-outage_Monte_GRD,...
-    1-outage_Monte_GA,1-outage_Monte_MILP];
+Monte_satis=[1-outage_No_Cache, 1-outage_All_Cache,...
+    1-outage_Monte_GRD,1-outage_Monte_MILP];
 figure(4);
 b=bar(Monte_satis);
-b(1).FaceColor=[0.93,0.69,0.13];
-b(2).FaceColor=[0.47,0.67,0.19];
-b(3).FaceColor=[0.30,0.75,0.93];
+b(1).FaceColor=[0.00,0.45,0.74];
+b(2).FaceColor=[0.49,0.18,0.56];
+b(3).FaceColor=[0.93,0.69,0.13];
+b(4).FaceColor=[0.30,0.75,0.93];
 xlabel('Number of flows');
 ylabel('Satisfied probability');
 ylim([0,1.5]);
-set(gca,'xtick',[1:5],'xticklabel',{'20','40','60','80','100'},'fontsize',24);
-lgd=legend({'GRC','GAC','PCDG'},'location','north');
+set(gca,'xtick',[1:6],'xticklabel',{'10','20','30','40','50','60'},'fontsize',24);
+lgd=legend({'No Cache','All Cache','GRC','PCDG'},'location','north');
 % set(lgd,'Box','off');
-lgd.NumColumns=3;
+lgd.NumColumns=4;
 lgd.FontSize=24;
 applyhatch(gcf,'\/x',[]);
 
